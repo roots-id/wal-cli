@@ -1,0 +1,3 @@
+
+rootProject.name = "wal-cli"
+
