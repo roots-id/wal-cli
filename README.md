@@ -1,25 +1,38 @@
 # wal-cli
 CLI Identity Wallet Implementation
 
-Requirements:
+##Requirements:
 
-Mongodb is required
-https://www.mongodb.com/try/download/community
+- Install Mongodb: https://www.mongodb.com/try/download/community
 
-Mongodb Windows WSL setup
-https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-mongodb
+- Set the following environment variables:
+
+  - IOG Repository credentials:
+  
+    `PRISM_SDK_USER = atala-dev`
+
+    `PRISM_SDK_PASSWORD = (Request to IOG)`
+
+  - RootsId Repository credentials, generate a personal access token 
+  [(PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
+  Since the repo is private it should only work with the team members.
+  
+    `ROOTS-ID_USER = <github user>`
+    
+    `ROOTS-ID_PASSWORD = <PAT Token>`
 
 
-Windows + WSL 2 add environment variable:
-nano ~/.bashrc
-add to file:
-export PRISM_SDK_PASSWORD=<value>
-export DISPLAY=<X11 Host>:0.0
+###Notes
+- On Windows restart IDE after adding/changing environment variables.
+- Windows WSL + 2 setup:
+  - Mongodb Windows WSL setup [here](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-mongodb)
+  - To add environment variable:  
+    `nano ~/.bashrc`
+  - Add to file the environment variables:  
+    `export <variable name>= <value>`
+  - To display QR on screen Install [vcxsrv](https://sourceforge.net/projects/vcxsrv/) and add the following to 
+  ~/.bashrc file:  
+    `export DISPLAY=<X11 Host>:0.0`
+  - To start mongodb:  
+  `sudo mongod --dbpath ~/data/db`
 
-Windows + WSL 2:
-Install: https://sourceforge.net/projects/vcxsrv/
-start mongodb:
-sudo mongod --dbpath ~/data/db
-
-Windows Environment variables
-Restart IDE after adding/changing environment variables
