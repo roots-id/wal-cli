@@ -6,9 +6,9 @@ import io.iohk.atala.prism.identity.Did
 import io.iohk.atala.prism.identity.PrismDid
 import io.iohk.atala.prism.protos.GrpcOptions
 import kotlinx.cli.ArgType
+import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.Subcommand
 import kotlinx.cli.default
-import kotlinx.cli.ExperimentalCli
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import java.time.LocalDateTime
@@ -214,12 +214,16 @@ class IssueCred : Subcommand("issue-cred", "Issue a credential") {
             val db = openDb()
             val wallet = findWallet(db, walletName)
             if (didAliasExists(db, walletName, didAlias)) {
+                // TODO: Verify credential alias not duplicate on DB
                 // Just for validation
                 PrismDid.fromDid(Did.fromString(holderUri))
                 val credential = Credential(
                     credentialAlias,
                     sampleCredentialClaim(holderUri),
-                    VerifiedCredential("", "")
+                    VerifiedCredential("", ""),
+                    "",
+                    "",
+                    ""
                 )
                 issueCredential(wallet, didAlias, credential)
                 insertCredential(db, credential)
@@ -250,8 +254,26 @@ class VerifyCred : Subcommand("verify-cred", "Verify a credential") {
     }
 }
 
-class RevokeCred : Subcommand(gray("revoke-cred"), "Revoke a credential") {
+class RevokeCred : Subcommand("revoke-cred", "Revoke a credential") {
+    private val walletName by argument(ArgType.String, "wallet", "Issuer wallet name")
+    private val didAlias by argument(ArgType.String, "issuer", "Issuer DID alias")
+    private val credentialAlias by argument(ArgType.String, "credential", "Credential alias")
+
     override fun execute() {
+        try {
+            val db = openDb()
+            val wallet = findWallet(db, walletName)
+            if (didAliasExists(db, walletName, didAlias)) {
+                val credential = findCredential(db, credentialAlias)
+                revokeCredential(wallet, didAlias, credential)
+                // TODO: flag credential revoked on db
+                // insertCredential(db, credential)
+                // updateWallet(db, wallet)
+            }
+        } catch (e: Exception) {
+            println("$name command ${red("failed")}:")
+            println(e.message)
+        }
     }
 }
 
@@ -261,16 +283,6 @@ class ExportCred : Subcommand(gray("export-cred"), "Export a credential") {
 }
 
 class ImportCred : Subcommand(gray("import-cred"), "Import a credential") {
-    override fun execute() {
-    }
-}
-
-class IssueBatch : Subcommand(gray("issue-batch"), "Issue a batch of credentials") {
-    override fun execute() {
-    }
-}
-
-class RevokeBatch : Subcommand(gray("revoke-batch"), "Revoke a batch of credentials") {
     override fun execute() {
     }
 }
