@@ -1,7 +1,7 @@
 # wal-cli
 CLI Identity Wallet Implementation
 
-##Requirements:
+## Requirements:
 
 - Install Mongodb: https://www.mongodb.com/try/download/community
 
@@ -22,15 +22,15 @@ CLI Identity Wallet Implementation
     `ROOTS-ID_PASSWORD = <PAT Token>`
 
 
-###Notes
+### Notes
 - On Windows restart IDE after adding/changing environment variables.
 - Windows WSL + 2 setup:
   - Mongodb Windows WSL setup [here](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-mongodb)
   - To add environment variable:  
     `nano ~/.bashrc`
-  - Add to file the environment variables:  
+  - Add the environment variables to the file:  
     `export <variable name>= <value>`
-  - To display QR on screen Install [vcxsrv](https://sourceforge.net/projects/vcxsrv/) and add the following to 
+  - To display QR on screen, Install [vcxsrv](https://sourceforge.net/projects/vcxsrv/) and add the following to 
   ~/.bashrc file:  
     `export DISPLAY=<X11 Host>:0.0`
   - To start mongodb:  
