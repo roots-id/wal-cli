@@ -9,8 +9,12 @@ import kotlinx.cli.ArgType
 import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.Subcommand
 import kotlinx.cli.default
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -75,13 +79,35 @@ class ShowMnemonic : Subcommand("show-mnemonic", "Show wallet mnemonic phrase an
     }
 }
 
-class ExportWallet : Subcommand(gray("export-wallet"), "Export a wallet") {
+class ExportWallet : Subcommand("export-wallet", "Export a wallet") {
+    private val walletName by argument(ArgType.String, "wallet", "Wallet name")
+    private var filename by argument(ArgType.String, "filename", "Output filename (json)")
     override fun execute() {
+        try {
+            val db = openDb()
+            val wallet = findWallet(db, walletName)
+            val walletString = Json.encodeToString(wallet)
+            if (! filename.endsWith(".json")) {
+                filename = "$filename.json"
+            }
+            File(filename).writeText(walletString)
+        } catch (e: Exception) {
+            println(e.message)
+        }
     }
 }
 
-class ImportWallet : Subcommand(gray("import-wallet"), "Import a wallet") {
+class ImportWallet : Subcommand("import-wallet", "Import a wallet") {
+    private val filename by argument(ArgType.String, "filename", "Input filename (json)")
     override fun execute() {
+        try {
+            val walletString = File(filename).readText()
+            val wallet = Json.decodeFromString<Wallet>(walletString)
+            val db = openDb()
+            updateWallet(db, wallet)
+        } catch (e: Exception) {
+            println(e.message)
+        }
     }
 }
 
