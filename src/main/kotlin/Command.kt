@@ -4,7 +4,6 @@ import com.github.ajalt.mordant.rendering.TextColors.*
 import com.rootsid.wal.library.*
 import io.iohk.atala.prism.identity.Did
 import io.iohk.atala.prism.identity.PrismDid
-import io.iohk.atala.prism.protos.GrpcOptions
 import kotlinx.cli.ArgType
 import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.Subcommand
@@ -70,7 +69,7 @@ class ShowMnemonic : Subcommand("show-mnemonic", "Show wallet mnemonic phrase an
         try {
             val db = openDb()
             val wallet = findWallet(db, walletName)
-            val mnemonic = wallet.mnemonic.reduce() { mnemonic, word -> "$mnemonic,$word" }
+            val mnemonic = wallet.mnemonic.reduce { mnemonic, word -> "$mnemonic,$word" }
             println("Mnemonic: $mnemonic")
         } catch (e: Exception) {
             println("get-mnemonic ${red("failed")}:")
@@ -325,11 +324,5 @@ class RevokeKey : Subcommand(gray("revoke-key"), "Revoke DID key") {
 
 class RotateKey : Subcommand(gray("rotate-key"), "Rotate DID key") {
     override fun execute() {
-    }
-}
-// TODO: get values from environment
-class EnvVar {
-    companion object {
-        val grpcOptions = GrpcOptions("https", "ppp.atalaprism.io", 50053)
     }
 }
