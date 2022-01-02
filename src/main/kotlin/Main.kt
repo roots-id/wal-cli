@@ -22,7 +22,6 @@ fun main(args: Array<String>) {
     val revokeCred = RevokeCred()
     val addKey = AddKey()
     val revokeKey = RevokeKey()
-    val rotateKey = RotateKey()
 
     parser.subcommands(
         newWallet,
@@ -40,8 +39,7 @@ fun main(args: Array<String>) {
         exportCred,
         importCred,
         addKey,
-        revokeKey,
-        rotateKey
+        revokeKey
     )
     parser.parse(args)
 }

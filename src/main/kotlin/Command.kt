@@ -341,8 +341,3 @@ class RevokeKey : Subcommand(gray("revoke-key"), "Revoke DID key") {
     override fun execute() {
     }
 }
-
-class RotateKey : Subcommand(gray("rotate-key"), "Rotate DID key") {
-    override fun execute() {
-    }
-}
