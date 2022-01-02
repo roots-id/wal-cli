@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalCli::class)
 
-import com.github.ajalt.mordant.rendering.TextColors.*
+import com.github.ajalt.mordant.rendering.TextColors.gray
+import com.github.ajalt.mordant.rendering.TextColors.green
+import com.github.ajalt.mordant.rendering.TextColors.red
 import com.rootsid.wal.library.*
 import io.iohk.atala.prism.identity.Did
 import io.iohk.atala.prism.identity.PrismDid
@@ -302,8 +304,26 @@ class RevokeCred : Subcommand("revoke-cred", "Revoke a credential") {
     }
 }
 
-class ExportCred : Subcommand(gray("export-cred"), "Export a credential") {
+class ExportCred : Subcommand("export-cred", "Export an issued credential") {
+    private val credentialAlias by argument(ArgType.String, "alias", "Credential alias")
+    private var filename by argument(ArgType.String, "filename", "Output filename (json)")
     override fun execute() {
+        try {
+            val db = openDb()
+            val verifiedCredential = findCredential(db, credentialAlias).verifiedCredential
+            val credentialJson = JsonObject(
+                mapOf(
+                    "encodedSignedCredential" to JsonPrimitive(verifiedCredential.encodedSignedCredential),
+                    "proof" to Json.parseToJsonElement(verifiedCredential.proof)
+                )
+            )
+            if (! filename.endsWith(".json")) {
+                filename = "$filename.json"
+            }
+            File(filename).writeText(credentialJson.toString())
+        } catch (e: Exception) {
+            println(e.message)
+        }
     }
 }
 
