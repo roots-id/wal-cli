@@ -55,7 +55,7 @@ dependencies {
 
     implementation("io.iohk.atala:prism-api:1.2.0")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 
     implementation("org.litote.kmongo:kmongo:4.4.0")
 }

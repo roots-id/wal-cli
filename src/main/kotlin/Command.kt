@@ -1,16 +1,21 @@
 @file:OptIn(ExperimentalCli::class)
 
-import com.github.ajalt.mordant.rendering.TextColors.*
+import com.github.ajalt.mordant.rendering.TextColors.gray
+import com.github.ajalt.mordant.rendering.TextColors.green
+import com.github.ajalt.mordant.rendering.TextColors.red
 import com.rootsid.wal.library.*
 import io.iohk.atala.prism.identity.Did
 import io.iohk.atala.prism.identity.PrismDid
-import io.iohk.atala.prism.protos.GrpcOptions
 import kotlinx.cli.ArgType
 import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.Subcommand
 import kotlinx.cli.default
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -66,7 +71,7 @@ class ShowMnemonic : Subcommand("show-mnemonic", "Show wallet mnemonic phrase an
         try {
             val db = openDb()
             val wallet = findWallet(db, walletName)
-            val mnemonic = wallet.mnemonic.reduce() { mnemonic, word -> "$mnemonic,$word" }
+            val mnemonic = wallet.mnemonic.reduce { mnemonic, word -> "$mnemonic,$word" }
             println("Mnemonic: $mnemonic")
         } catch (e: Exception) {
             println("get-mnemonic ${red("failed")}:")
@@ -75,13 +80,35 @@ class ShowMnemonic : Subcommand("show-mnemonic", "Show wallet mnemonic phrase an
     }
 }
 
-class ExportWallet : Subcommand(gray("export-wallet"), "Export a wallet") {
+class ExportWallet : Subcommand("export-wallet", "Export a wallet") {
+    private val walletName by argument(ArgType.String, "wallet", "Wallet name")
+    private var filename by argument(ArgType.String, "filename", "Output filename (json)")
     override fun execute() {
+        try {
+            val db = openDb()
+            val wallet = findWallet(db, walletName)
+            val walletString = Json.encodeToString(wallet)
+            if (! filename.endsWith(".json")) {
+                filename = "$filename.json"
+            }
+            File(filename).writeText(walletString)
+        } catch (e: Exception) {
+            println(e.message)
+        }
     }
 }
 
-class ImportWallet : Subcommand(gray("import-wallet"), "Import a wallet") {
+class ImportWallet : Subcommand("import-wallet", "Import a wallet") {
+    private val filename by argument(ArgType.String, "filename", "Input filename (json)")
     override fun execute() {
+        try {
+            val walletString = File(filename).readText()
+            val wallet = Json.decodeFromString<Wallet>(walletString)
+            val db = openDb()
+            updateWallet(db, wallet)
+        } catch (e: Exception) {
+            println(e.message)
+        }
     }
 }
 
@@ -277,8 +304,26 @@ class RevokeCred : Subcommand("revoke-cred", "Revoke a credential") {
     }
 }
 
-class ExportCred : Subcommand(gray("export-cred"), "Export a credential") {
+class ExportCred : Subcommand("export-cred", "Export an issued credential") {
+    private val credentialAlias by argument(ArgType.String, "alias", "Credential alias")
+    private var filename by argument(ArgType.String, "filename", "Output filename (json)")
     override fun execute() {
+        try {
+            val db = openDb()
+            val verifiedCredential = findCredential(db, credentialAlias).verifiedCredential
+            val credentialJson = JsonObject(
+                mapOf(
+                    "encodedSignedCredential" to JsonPrimitive(verifiedCredential.encodedSignedCredential),
+                    "proof" to Json.parseToJsonElement(verifiedCredential.proof)
+                )
+            )
+            if (! filename.endsWith(".json")) {
+                filename = "$filename.json"
+            }
+            File(filename).writeText(credentialJson.toString())
+        } catch (e: Exception) {
+            println(e.message)
+        }
     }
 }
 
@@ -294,16 +339,5 @@ class AddKey : Subcommand(gray("add-key"), "Add a key to a DID") {
 
 class RevokeKey : Subcommand(gray("revoke-key"), "Revoke DID key") {
     override fun execute() {
-    }
-}
-
-class RotateKey : Subcommand(gray("rotate-key"), "Rotate DID key") {
-    override fun execute() {
-    }
-}
-// TODO: get values from environment
-class EnvVar {
-    companion object {
-        val grpcOptions = GrpcOptions("https", "ppp.atalaprism.io", 50053)
     }
 }
