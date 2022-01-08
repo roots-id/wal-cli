@@ -1,6 +1,12 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
+    // To generate executable jar (because of issue with long classpath on Windows)
+    // https://imperceptiblethoughts.com/shadow/introduction/#benefits-of-shadow
+    // TODO: Try again woth fat jar https://www.baeldung.com/kotlin/gradle-executable-jar
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("java")
+
     kotlin("jvm") version "1.6.10"
     application
 }
@@ -42,7 +48,6 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
 
-    // TODO: Review if this goes here or in wal-library
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
 
     implementation("com.github.ajalt.mordant:mordant:2.0.0-beta3")
