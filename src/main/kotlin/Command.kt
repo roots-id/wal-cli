@@ -6,15 +6,15 @@ import com.github.ajalt.mordant.rendering.TextColors.red
 import com.rootsid.wal.library.*
 import io.iohk.atala.prism.identity.Did
 import io.iohk.atala.prism.identity.PrismDid
-import kotlinx.cli.ArgType
-import kotlinx.cli.ExperimentalCli
-import kotlinx.cli.Subcommand
-import kotlinx.cli.default
+import kotlinx.cli.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import org.didcommx.didcomm.exceptions.DIDCommException
+import org.didcommx.peerdid.MalformedPeerDIDException
+import org.didcommx.peerdid.VerificationMaterialFormatPeerDID
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -339,5 +339,131 @@ class AddKey : Subcommand(gray("add-key"), "Add a key to a DID") {
 
 class RevokeKey : Subcommand(gray("revoke-key"), "Revoke DID key") {
     override fun execute() {
+    }
+}
+
+class PeerDIDCreatorCommand : Subcommand("create-peer-did", "Creates a new Peer DID and corresponding secrets") {
+
+    val authKeysCount by option(
+        ArgType.Int,
+        description = "Number of authentication keys",
+        fullName = "auth-keys-count"
+    ).default(1)
+    val agreementKeysCount by option(
+        ArgType.Int,
+        description = "Number of agreement keys",
+        fullName = "agreement-keys-count"
+    ).default(1)
+    val serviceEndpoint by option(
+        ArgType.String,
+        description = "Service endpoint",
+        fullName = "service-endpoint"
+    )
+    val serviceRoutingKeys by option(
+        ArgType.String,
+        description = "Service routing keys",
+        fullName = "service-routing-key"
+    ).multiple()
+
+    override fun execute() {
+        val res = try {
+            createPeerDID(
+                authKeysCount = authKeysCount, agreementKeysCount = agreementKeysCount,
+                serviceEndpoint = serviceEndpoint, serviceRoutingKeys = serviceRoutingKeys,
+                SecretResolver()
+            )
+        } catch (e: IllegalArgumentException) {
+            e.localizedMessage
+        }
+        println()
+        println(res)
+        println()
+    }
+}
+
+enum class Format {
+    JWK,
+    BASE58,
+    MULTIBASE
+}
+
+class ResolvePeerDIDCommand : Subcommand("resolve-peer-did", "Resolve a Peer DID to DID Doc JSON") {
+
+    val did by argument(ArgType.String, description = "Peer DID to be resolved")
+    val format by option(
+        ArgType.Choice<Format>(),
+        shortName = "f",
+        description = "Peer DID to be resolved"
+    ).default(Format.JWK)
+
+    override fun execute() {
+        val res = try {
+            resolvePeerDID(
+                did,
+                format = when (format) {
+                    Format.JWK -> VerificationMaterialFormatPeerDID.JWK
+                    Format.BASE58 -> VerificationMaterialFormatPeerDID.BASE58
+                    Format.MULTIBASE -> VerificationMaterialFormatPeerDID.MULTIBASE
+                }
+            )
+        } catch (e: MalformedPeerDIDException) {
+            e.localizedMessage
+        }
+        println()
+        println(res)
+        println()
+    }
+}
+
+class PackCommand : Subcommand("pack", "Packs the message") {
+
+    val message by argument(ArgType.String, description = "Message to pack")
+    val to by option(ArgType.String, description = "Receiver's DID").required()
+    val from by option(ArgType.String, description = "Sender's DID. Anonymous encryption is used if not set.")
+    val signFrom by option(
+        ArgType.String,
+        fullName = "sign-from",
+        description = "Sender's DID for optional signing. The message is not signed if not set."
+    )
+    val protectSender by option(
+        ArgType.Boolean,
+        fullName = "protect-sender",
+        description = "Whether the sender's ID (DID) must be hidden. True by default."
+    ).default(true)
+
+    override fun execute() {
+        val res = try {
+            pack(
+                data = message, to = to, from = from, signFrom = signFrom, protectSender = protectSender,
+                SecretResolver()
+            ).packedMessage
+        } catch (e: DIDCommException) {
+            e.localizedMessage
+        }
+        println()
+        println(res)
+        println()
+    }
+}
+
+class UnpackCommand : Subcommand("unpack", "Unpacks the message") {
+
+    val message by argument(ArgType.String, description = "Message to unpack. Use single quotes '<json>'")
+
+    override fun execute() {
+        println("Message:$message")
+        val res = try {
+            val unpackRes = unpack(message, SecretResolver())
+            unpackRes.from?.let {
+                "authcrypted '${unpackRes.message}' from ${unpackRes.from} to ${unpackRes.to}"
+            } ?: {
+                "anoncrypted '${unpackRes.message}' to ${unpackRes.to}"
+            }
+        } catch (e: DIDCommException) {
+            e.localizedMessage
+        }
+        println()
+        println(res)
+        println()
     }
 }

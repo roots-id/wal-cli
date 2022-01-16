@@ -20,7 +20,11 @@ fun main(args: Array<String>) {
         ImportCred(),
         RevokeCred(),
         AddKey(),
-        RevokeKey()
+        RevokeKey(),
+        PeerDIDCreatorCommand(),
+        ResolvePeerDIDCommand(),
+        PackCommand(),
+        UnpackCommand()
     )
     parser.parse(args)
 }
