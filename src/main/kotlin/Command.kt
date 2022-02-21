@@ -332,13 +332,46 @@ class ImportCred : Subcommand(gray("import-cred"), "Import a credential") {
     }
 }
 
-class AddKey : Subcommand(gray("add-key"), "Add a key to a DID") {
+class AddKey : Subcommand("add-key", "Add a key to a DID") {
+    private val walletName by argument(ArgType.String, "wallet", "Wallet name")
+    private val didAlias by argument(ArgType.String, "alias", "DID alias")
+    private val keyId by argument(ArgType.String, "keyId", "Key identifier")
+    private val keyType by argument(ArgType.Choice(listOf(0, 1, 2), { it }), "keyType", "Key type (0=Master, 1=Issuing, 2=Revocation)")
+
     override fun execute() {
+        try {
+            val db = openDb()
+            var wallet = findWallet(db, walletName)
+
+            if (didAliasExists(db, walletName, didAlias)) {
+                wallet = addKey(wallet, didAlias, keyId, 0)
+                updateWallet(db, wallet)
+                return
+            }
+        } catch (e: Exception) {
+            println(e.message)
+        }
     }
 }
 
-class RevokeKey : Subcommand(gray("revoke-key"), "Revoke DID key") {
+class RevokeKey : Subcommand("revoke-key", "Revoke DID key") {
+    private val walletName by argument(ArgType.String, "wallet", "Issuer wallet name")
+    private val didAlias by argument(ArgType.String, "issuer", "Issuer DID alias")
+    private val keyId by argument(ArgType.String, "keyId", "Key identifier")
+
     override fun execute() {
+        try {
+            val db = openDb()
+            val wallet = findWallet(db, walletName)
+            if (didAliasExists(db, walletName, didAlias)) {
+                revokeKey(wallet, didAlias, keyId)
+                // TODO: flag key revoked on db
+                // updateWallet(db, wallet)
+            }
+        } catch (e: Exception) {
+            println("$name command ${red("failed")}:")
+            println(e.message)
+        }
     }
 }
 
