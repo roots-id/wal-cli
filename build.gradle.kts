@@ -48,17 +48,19 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
+
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
 
     implementation("com.github.ajalt.mordant:mordant:2.0.0-beta3")
 
-    implementation("io.iohk.atala:prism-crypto:1.2.0")
+    implementation("io.iohk.atala:prism-crypto:1.3.0")
 
-    implementation("io.iohk.atala:prism-identity:1.2.0")
+    implementation("io.iohk.atala:prism-identity:1.3.0")
 
-    implementation("io.iohk.atala:prism-credentials:1.2.0")
+    implementation("io.iohk.atala:prism-credentials:1.3.0")
 
-    implementation("io.iohk.atala:prism-api:1.2.0")
+    implementation("io.iohk.atala:prism-api:1.3.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 
@@ -66,7 +68,7 @@ dependencies {
 
     implementation("org.didcommx:didcomm:0.3.0")
 
-    implementation("org.didcommx:peerdid:0.2.0")
+    implementation("org.didcommx:peerdid:0.3.0")
 }
 
 tasks.test {
