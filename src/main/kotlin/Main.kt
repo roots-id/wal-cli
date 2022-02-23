@@ -28,3 +28,6 @@ fun main(args: Array<String>) {
     )
     parser.parse(args)
 }
+
+// TODO: add action log to db
+// TODO: add transactions to db
