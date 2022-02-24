@@ -297,8 +297,6 @@ class PublishDID : Subcommand("publish-did", "Publish a DID") {
     }
 }
 
-// TODO: continue refactoring
-
 /**
  * Issue cred
  *
@@ -313,13 +311,14 @@ class IssueCred : Subcommand("issue-cred", "Issue a credential") {
         ArgType.String, "Credential claim json file", "j",
         "Credential Subject json file. Placeholder json will be used if a filename isn't provided"
     ).default("")
-
+    // TODO: enable use of credential claim from json file
     override fun execute() {
         try {
             val db = openDb()
-            val wallet = findWallet(db, walletName)
-            if (didAliasExists(db, walletName, didAlias)) {
-                // TODO: Verify credential alias not duplicate on DB
+            var wallet = findWallet(db, walletName)
+            if (didAliasExists(db, walletName, didAlias) &&
+                !issuedCredentialAliasExists(db, walletName, credentialAlias)
+            ) {
                 // Just for validation
                 PrismDid.fromDid(Did.fromString(holderUri))
                 val credential = Credential(
@@ -330,13 +329,16 @@ class IssueCred : Subcommand("issue-cred", "Issue a credential") {
                     "",
                     ""
                 )
-                issueCredential(wallet, didAlias, credential)
-                insertCredential(db, credential)
+                wallet = issueCredential(wallet, didAlias, credential)
                 updateWallet(db, wallet)
+                println(green("-- $name --"))
+                println("Credential issued")
+            } else {
+                throw Exception("Duplicated credential alias, wallet not found or DID not found")
             }
         } catch (e: Exception) {
-            println("issue-credential command ${red("failed")}:")
-            println(e.message)
+            println(red("-- $name error --"))
+            e.printStackTrace()
         }
     }
 }
@@ -347,22 +349,27 @@ class IssueCred : Subcommand("issue-cred", "Issue a credential") {
  * @constructor Create empty Verify cred
  */
 class VerifyCred : Subcommand("verify-cred", "Verify a credential") {
+    private val walletName by argument(ArgType.String, "wallet", "Issuer wallet name")
     private val credentialAlias by argument(ArgType.String, "alias", "Credential alias")
     override fun execute() {
         try {
             val db = openDb()
-            val credential = findCredential(db, credentialAlias)
+            val credential = findIssuedCredential(db, walletName, credentialAlias)
             val result = verifyCredential(credential)
+            println(green("-- $name --"))
             if (result.verificationErrors.isEmpty()) {
                 println(green("Valid credential."))
             } else {
                 println(red("Invalid credential."))
             }
         } catch (e: Exception) {
-            println(e.message)
+            println(red("-- $name error --"))
+            e.printStackTrace()
         }
     }
 }
+
+// TODO: Continue refactor here
 
 /**
  * Revoke cred
@@ -379,7 +386,7 @@ class RevokeCred : Subcommand("revoke-cred", "Revoke a credential") {
             val db = openDb()
             val wallet = findWallet(db, walletName)
             if (didAliasExists(db, walletName, didAlias)) {
-                val credential = findCredential(db, credentialAlias)
+                val credential = findIssuedCredential(db, walletName, credentialAlias)
                 revokeCredential(wallet, didAlias, credential)
                 // TODO: flag credential revoked on db
                 // insertCredential(db, credential)
@@ -398,12 +405,13 @@ class RevokeCred : Subcommand("revoke-cred", "Revoke a credential") {
  * @constructor Create empty Export cred
  */
 class ExportCred : Subcommand("export-cred", "Export an issued credential") {
+    private val walletName by argument(ArgType.String, "wallet", "Issuer wallet name")
     private val credentialAlias by argument(ArgType.String, "alias", "Credential alias")
     private var filename by argument(ArgType.String, "filename", "Output filename (json)")
     override fun execute() {
         try {
             val db = openDb()
-            val verifiedCredential = findCredential(db, credentialAlias).verifiedCredential
+            val verifiedCredential = findIssuedCredential(db, walletName, credentialAlias).verifiedCredential
             val credentialJson = JsonObject(
                 mapOf(
                     "encodedSignedCredential" to JsonPrimitive(verifiedCredential.encodedSignedCredential),

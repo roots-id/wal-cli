@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     // To generate executable jar (because of issue with long classpath on Windows)
     // https://imperceptiblethoughts.com/shadow/introduction/#benefits-of-shadow
-    // TODO: Try again woth fat jar https://www.baeldung.com/kotlin/gradle-executable-jar
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("java")
 
