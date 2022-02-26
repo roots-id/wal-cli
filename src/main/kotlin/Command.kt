@@ -1,6 +1,5 @@
 @file:OptIn(ExperimentalCli::class)
 
-import com.github.ajalt.mordant.rendering.TextColors.gray
 import com.github.ajalt.mordant.rendering.TextColors.green
 import com.github.ajalt.mordant.rendering.TextColors.red
 import com.rootsid.wal.library.*
@@ -20,7 +19,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 // Use jsonFormat.encodeToString(did) to convert data class to pretty print json
-val jsonFormat = Json { prettyPrint = true }
+val jsonFormat = Json { prettyPrint = true; encodeDefaults = true ; }
 
 /**
  * now
@@ -281,7 +280,6 @@ class PublishDID : Subcommand("publish-did", "Publish a DID") {
         try {
             val db = openDb()
             var wallet = findWallet(db, walletName)
-
             if (didAliasExists(db, walletName, didAlias)) {
                 wallet = publishDid(wallet, didAlias)
                 updateWallet(db, wallet)
@@ -323,11 +321,13 @@ class IssueCred : Subcommand("issue-cred", "Issue a credential") {
                 PrismDid.fromDid(Did.fromString(holderUri))
                 val credential = Credential(
                     credentialAlias,
+                    "",
                     sampleCredentialClaim(holderUri),
-                    VerifiedCredential("", ""),
+                    VerifiedCredential("", Proof("", 0, mutableListOf())),
                     "",
                     "",
-                    ""
+                    "",
+                    false
                 )
                 wallet = issueCredential(wallet, didAlias, credential)
                 updateWallet(db, wallet)
@@ -354,8 +354,8 @@ class VerifyCred : Subcommand("verify-cred", "Verify a credential") {
     override fun execute() {
         try {
             val db = openDb()
-            val credential = findIssuedCredential(db, walletName, credentialAlias)
-            val result = verifyCredential(credential)
+            var wallet = findWallet(db, walletName)
+            val result = verifyCredential(wallet, credentialAlias)
             println(green("-- $name --"))
             if (result.verificationErrors.isEmpty()) {
                 println(green("Valid credential."))
@@ -369,8 +369,6 @@ class VerifyCred : Subcommand("verify-cred", "Verify a credential") {
     }
 }
 
-// TODO: Continue refactor here
-
 /**
  * Revoke cred
  *
@@ -378,23 +376,19 @@ class VerifyCred : Subcommand("verify-cred", "Verify a credential") {
  */
 class RevokeCred : Subcommand("revoke-cred", "Revoke a credential") {
     private val walletName by argument(ArgType.String, "wallet", "Issuer wallet name")
-    private val didAlias by argument(ArgType.String, "issuer", "Issuer DID alias")
     private val credentialAlias by argument(ArgType.String, "credential", "Credential alias")
 
     override fun execute() {
         try {
             val db = openDb()
             val wallet = findWallet(db, walletName)
-            if (didAliasExists(db, walletName, didAlias)) {
-                val credential = findIssuedCredential(db, walletName, credentialAlias)
-                revokeCredential(wallet, didAlias, credential)
-                // TODO: flag credential revoked on db
-                // insertCredential(db, credential)
-                // updateWallet(db, wallet)
-            }
+            revokeCredential(wallet, credentialAlias)
+            updateWallet(db, wallet)
+            println(green("-- $name --"))
+            println("Credential revoked")
         } catch (e: Exception) {
-            println("$name command ${red("failed")}:")
-            println(e.message)
+            println(red("-- $name error --"))
+            e.printStackTrace()
         }
     }
 }
@@ -411,19 +405,22 @@ class ExportCred : Subcommand("export-cred", "Export an issued credential") {
     override fun execute() {
         try {
             val db = openDb()
-            val verifiedCredential = findIssuedCredential(db, walletName, credentialAlias).verifiedCredential
-            val credentialJson = JsonObject(
-                mapOf(
-                    "encodedSignedCredential" to JsonPrimitive(verifiedCredential.encodedSignedCredential),
-                    "proof" to Json.parseToJsonElement(verifiedCredential.proof)
-                )
-            )
-            if (! filename.endsWith(".json")) {
-                filename = "$filename.json"
+            val wallet = findWallet(db, walletName)
+            var credentials = wallet.issuedCredentials.filter { it.alias == credentialAlias }
+            if (credentials.isNotEmpty()) {
+                val credential = credentials[0]
+                if (!filename.endsWith(".json")) {
+                    filename = "$filename.json"
+                }
+                File(filename).writeText(jsonFormat.encodeToString(credential.verifiedCredential))
+                println(green("-- $name --"))
+                println("Credential exported")
+            } else {
+                throw Exception("Credential not found")
             }
-            File(filename).writeText(credentialJson.toString())
         } catch (e: Exception) {
-            println(e.message)
+            println(red("-- $name error --"))
+            e.printStackTrace()
         }
     }
 }
@@ -433,10 +430,32 @@ class ExportCred : Subcommand("export-cred", "Export an issued credential") {
  *
  * @constructor Create empty Import cred
  */
-class ImportCred : Subcommand(gray("import-cred"), "Import a credential") {
+class ImportCred : Subcommand("import-cred", "Import a credential") {
+    private val walletName by argument(ArgType.String, "wallet", "Issuer wallet name")
+    private val credentialAlias by argument(ArgType.String, "alias", "Credential alias")
+    private var filename by argument(ArgType.String, "filename", "Input filename (json)")
     override fun execute() {
+        try {
+            val db = openDb()
+            if (!credentialAliasExists(db, walletName, credentialAlias)) {
+                val wallet = findWallet(db, walletName)
+                val text = File(filename).readText()
+                val verifiedCredential = Json.decodeFromString<VerifiedCredential>(text)
+                wallet.credentials.add(verifiedCredential)
+                updateWallet(db, wallet)
+                println(green("-- $name --"))
+                println("Credential imported")
+            } else {
+                throw Exception("Credential alias already in use")
+            }
+        } catch (e: Exception) {
+            println(red("-- $name error --"))
+            e.printStackTrace()
+        }
     }
 }
+
+// TODO: Continue refactor here
 
 /**
  * Add key
@@ -448,7 +467,6 @@ class AddKey : Subcommand("add-key", "Add a key to a DID") {
     private val didAlias by argument(ArgType.String, "alias", "DID alias")
     private val keyId by argument(ArgType.String, "keyId", "Key identifier")
     private val keyType by argument(ArgType.Choice(listOf(0, 1, 2), { it }), "keyType", "Key type (0=Master, 1=Issuing, 2=Revocation)")
-
     override fun execute() {
         try {
             val db = openDb()
