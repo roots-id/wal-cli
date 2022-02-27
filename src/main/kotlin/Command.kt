@@ -5,6 +5,7 @@ import com.github.ajalt.mordant.rendering.TextColors.red
 import com.rootsid.wal.library.*
 import io.iohk.atala.prism.identity.Did
 import io.iohk.atala.prism.identity.PrismDid
+import io.iohk.atala.prism.identity.PrismKeyType
 import kotlinx.cli.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -319,7 +320,7 @@ class IssueCred : Subcommand("issue-cred", "Issue a credential") {
             ) {
                 // Just for validation
                 PrismDid.fromDid(Did.fromString(holderUri))
-                val credential = Credential(
+                val credential = IssuedCredential(
                     credentialAlias,
                     "",
                     sampleCredentialClaim(holderUri),
@@ -350,12 +351,17 @@ class IssueCred : Subcommand("issue-cred", "Issue a credential") {
  */
 class VerifyCred : Subcommand("verify-cred", "Verify a credential") {
     private val walletName by argument(ArgType.String, "wallet", "Issuer wallet name")
+    private val list by argument(ArgType.Choice(listOf("issued", "imported"), { it }), "list", "List storing the credential")
     private val credentialAlias by argument(ArgType.String, "alias", "Credential alias")
     override fun execute() {
         try {
             val db = openDb()
-            var wallet = findWallet(db, walletName)
-            val result = verifyCredential(wallet, credentialAlias)
+            val wallet = findWallet(db, walletName)
+            val result = if (list == "issued") {
+                verifyIssuedCredential(wallet, credentialAlias)
+            } else {
+                verifyImportedCredential(wallet, credentialAlias)
+            }
             println(green("-- $name --"))
             if (result.verificationErrors.isEmpty()) {
                 println(green("Valid credential."))
@@ -406,7 +412,7 @@ class ExportCred : Subcommand("export-cred", "Export an issued credential") {
         try {
             val db = openDb()
             val wallet = findWallet(db, walletName)
-            var credentials = wallet.issuedCredentials.filter { it.alias == credentialAlias }
+            val credentials = wallet.issuedCredentials.filter { it.alias == credentialAlias }
             if (credentials.isNotEmpty()) {
                 val credential = credentials[0]
                 if (!filename.endsWith(".json")) {
@@ -440,8 +446,11 @@ class ImportCred : Subcommand("import-cred", "Import a credential") {
             if (!credentialAliasExists(db, walletName, credentialAlias)) {
                 val wallet = findWallet(db, walletName)
                 val text = File(filename).readText()
-                val verifiedCredential = Json.decodeFromString<VerifiedCredential>(text)
-                wallet.credentials.add(verifiedCredential)
+                val importedCredential = ImportedCredential(
+                    credentialAlias,
+                    Json.decodeFromString<VerifiedCredential>(text)
+                )
+                wallet.importedCredentials.add(importedCredential)
                 updateWallet(db, wallet)
                 println(green("-- $name --"))
                 println("Credential imported")
@@ -455,8 +464,6 @@ class ImportCred : Subcommand("import-cred", "Import a credential") {
     }
 }
 
-// TODO: Continue refactor here
-
 /**
  * Add key
  *
@@ -466,20 +473,33 @@ class AddKey : Subcommand("add-key", "Add a key to a DID") {
     private val walletName by argument(ArgType.String, "wallet", "Wallet name")
     private val didAlias by argument(ArgType.String, "alias", "DID alias")
     private val keyId by argument(ArgType.String, "keyId", "Key identifier")
-    private val keyType by argument(ArgType.Choice(listOf(0, 1, 2), { it }), "keyType", "Key type (0=Master, 1=Issuing, 2=Revocation)")
+    private val keyPurpose by argument(ArgType.Choice(listOf("master", "issuing", "revocation"), { it }), "keyType", "Key type")
     override fun execute() {
         try {
             val db = openDb()
             var wallet = findWallet(db, walletName)
-
-            if (didAliasExists(db, walletName, didAlias)) {
-                // TODO: use keyType from argument
-                wallet = addKey(wallet, didAlias, keyId, 0)
+            val keyType = when (keyPurpose) {
+                "master" -> PrismKeyType.MASTER_KEY
+                "issuing" -> PrismKeyType.ISSUING_KEY
+                "revocation" -> PrismKeyType.REVOCATION_KEY
+                else -> {
+                    throw Exception("Unknown key type")
+                }
+            }
+            if (didAliasExists(db, walletName, didAlias) &&
+                ! keyIdExists(db, walletName, didAlias, keyId)
+            ) {
+                wallet = addKey(wallet, didAlias, keyId, keyType)
                 updateWallet(db, wallet)
+                println(green("-- $name --"))
+                println("Key Added")
                 return
+            } else {
+                throw Exception("Duplicated keyId, wallet not found or DID not found")
             }
         } catch (e: Exception) {
-            println(e.message)
+            println(red("-- $name error --"))
+            e.printStackTrace()
         }
     }
 }
@@ -497,15 +517,16 @@ class RevokeKey : Subcommand("revoke-key", "Revoke DID key") {
     override fun execute() {
         try {
             val db = openDb()
-            val wallet = findWallet(db, walletName)
-            if (didAliasExists(db, walletName, didAlias)) {
-                revokeKey(wallet, didAlias, keyId)
-                // TODO: flag key revoked on db
-                // updateWallet(db, wallet)
+            var wallet = findWallet(db, walletName)
+            if (keyIdExists(db, walletName, didAlias, keyId)) {
+                wallet = revokeKey(wallet, didAlias, keyId)
+                updateWallet(db, wallet)
+            } else{
+                throw Exception("keyId not found")
             }
         } catch (e: Exception) {
-            println("$name command ${red("failed")}:")
-            println(e.message)
+            println(red("-- $name error --"))
+            e.printStackTrace()
         }
     }
 }
