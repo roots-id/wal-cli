@@ -3,9 +3,11 @@
 import com.github.ajalt.mordant.rendering.TextColors.green
 import com.github.ajalt.mordant.rendering.TextColors.red
 import com.rootsid.wal.library.*
+import io.iohk.atala.prism.common.PrismSdkInternal
 import io.iohk.atala.prism.identity.Did
 import io.iohk.atala.prism.identity.PrismDid
 import io.iohk.atala.prism.identity.PrismKeyType
+import io.iohk.atala.prism.identity.toProto
 import kotlinx.cli.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -15,6 +17,8 @@ import kotlinx.serialization.json.JsonPrimitive
 import org.didcommx.didcomm.exceptions.DIDCommException
 import org.didcommx.peerdid.MalformedPeerDIDException
 import org.didcommx.peerdid.VerificationMaterialFormatPeerDID
+import pbandk.ExperimentalProtoJson
+import pbandk.json.encodeToJsonString
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -74,7 +78,7 @@ class NewWallet : Subcommand("new-wallet", "Create a wallet") {
         ArgType.String,
         "mnemonic",
         "m",
-        "Mnemonic phrase. Use '${Constant.MNEMONIC_SEPARATOR}' separated words, no spaces"
+        "Mnemonic phrase. Use '${Config.MNEMONIC_SEPARATOR}' separated words, no spaces"
     ).default("")
     private val passphrase by option(ArgType.String, "passphrase", "p", "Passphrase.").default("")
     override fun execute() {
@@ -209,6 +213,28 @@ class NewDID : Subcommand("new-did", "Create a DID") {
             updateWallet(db, wallet)
             println(green("-- $name --"))
             println("DID created")
+        } catch (e: Exception) {
+            println(red("-- $name error --"))
+            e.printStackTrace()
+        }
+    }
+}
+
+class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and show DID document") {
+    private val walletName by argument(ArgType.String, "wallet", "Wallet name")
+    private val didAlias by argument(ArgType.String, "alias", "DID alias")
+    @OptIn(PrismSdkInternal::class, ExperimentalProtoJson::class)
+    override fun execute() {
+        try {
+            val db = openDb()
+            var wallet = findWallet(db, walletName)
+            if (!didAliasExists(db, walletName, didAlias)) {
+                throw Exception("DID alias not found")
+            }
+            val dataModel = getDidDocument(wallet, didAlias)
+            println(green("-- $name --"))
+            println("DID document")
+            println(dataModel.toProto().encodeToJsonString())
         } catch (e: Exception) {
             println(red("-- $name error --"))
             e.printStackTrace()
@@ -521,7 +547,7 @@ class RevokeKey : Subcommand("revoke-key", "Revoke DID key") {
             if (keyIdExists(db, walletName, didAlias, keyId)) {
                 wallet = revokeKey(wallet, didAlias, keyId)
                 updateWallet(db, wallet)
-            } else{
+            } else {
                 throw Exception("keyId not found")
             }
         } catch (e: Exception) {

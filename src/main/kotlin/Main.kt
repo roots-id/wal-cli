@@ -14,6 +14,7 @@ fun main(args: Array<String>) {
         ListDID(),
         ShowDID(),
         PublishDID(),
+        ResolvePrismDid(),
         IssueCred(),
         VerifyCred(),
         ExportCred(),
@@ -29,9 +30,8 @@ fun main(args: Array<String>) {
     parser.parse(args)
 }
 
-// TODO: add resolve prism did
+
 // TODO: add action log to db
 // TODO: add transactions to model
 // TODO: check how to use seed instead of mnemonic (DLT)
 // TODO: Modify secret resolver to use DB
-// TODO: Update nodeAuthApi.getOperationStatus (DLT)
