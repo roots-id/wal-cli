@@ -68,6 +68,8 @@ dependencies {
     implementation("org.didcommx:didcomm:0.3.0")
 
     implementation("org.didcommx:peerdid:0.3.0")
+
+    implementation("org.junit.jupiter:junit-jupiter:5.8.2")
 }
 
 tasks.test {

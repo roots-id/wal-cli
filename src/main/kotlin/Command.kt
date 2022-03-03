@@ -82,19 +82,14 @@ class NewWallet : Subcommand("new-wallet", "Create a wallet") {
     ).default("")
     private val passphrase by option(ArgType.String, "passphrase", "p", "Passphrase.").default("")
     override fun execute() {
-        try {
-            val db = openDb()
-            if (!walletExists(db, walletName)) {
-                val wal = newWallet(walletName, mnemonic, passphrase)
-                insertWallet(db, wal)
-                println(green("-- $name --"))
-                println("wallet created")
-            } else {
-                throw Exception("wallet name already exists")
-            }
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+        val db = openDb()
+        if (!walletExists(db, walletName)) {
+            val wal = newWallet(walletName, mnemonic, passphrase)
+            insertWallet(db, wal)
+            println(green("-- $name --"))
+            println("wallet created")
+        } else {
+            throw Exception("wallet name already exists")
         }
     }
 }
@@ -106,20 +101,15 @@ class NewWallet : Subcommand("new-wallet", "Create a wallet") {
  */
 class ListWallets : Subcommand("list-wallets", "List wallets") {
     override fun execute() {
-        try {
-            val db = openDb()
-            val wallets = listWallets(db)
-            println(green("-- $name --"))
-            if (wallets.isNotEmpty()) {
-                for (wallet in wallets) {
-                    println(wallet._id)
-                }
+        val db = openDb()
+        val wallets = listWallets(db)
+        println(green("-- $name --"))
+        if (wallets.isNotEmpty()) {
+            for (wallet in wallets) {
+                println(wallet._id)
             }
-            println("\t${wallets.size} wallet(s)")
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
         }
+        println("\t${wallets.size} wallet(s)")
     }
 }
 
@@ -131,16 +121,12 @@ class ListWallets : Subcommand("list-wallets", "List wallets") {
 class ShowMnemonic : Subcommand("show-mnemonic", "Show wallet mnemonic phrase and passphrase") {
     private val walletName by argument(ArgType.String, "name", "Wallet name")
     override fun execute() {
-        try {
-            val db = openDb()
-            val wallet = findWallet(db, walletName)
-            val mnemonic = wallet.mnemonic.reduce { mnemonic, word -> "$mnemonic,$word" }
-            println(green("-- $name --"))
-            println("Mnemonic: $mnemonic")
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
-        }
+        val db = openDb()
+        val wallet = findWallet(db, walletName)
+        val mnemonic = wallet.mnemonic.reduce { mnemonic, word -> "$mnemonic,$word" }
+        println(green("-- $name --"))
+        println("Mnemonic: $mnemonic")
+        println("Passphrase: ${wallet.passphrase}")
     }
 }
 
@@ -153,20 +139,15 @@ class ExportWallet : Subcommand("export-wallet", "Export a wallet") {
     private val walletName by argument(ArgType.String, "wallet", "Wallet name")
     private var filename by argument(ArgType.String, "filename", "Output filename (json)")
     override fun execute() {
-        try {
-            val db = openDb()
-            val wallet = findWallet(db, walletName)
-            val walletString = jsonFormat.encodeToString(wallet)
-            if (! filename.endsWith(".json")) {
-                filename = "$filename.json"
-            }
-            File(filename).writeText(walletString)
-            println(green("-- $name --"))
-            println("Wallet exported")
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+        val db = openDb()
+        val wallet = findWallet(db, walletName)
+        val walletString = jsonFormat.encodeToString(wallet)
+        if (! filename.endsWith(".json")) {
+            filename = "$filename.json"
         }
+        File(filename).writeText(walletString)
+        println(green("-- $name --"))
+        println("Wallet exported")
     }
 }
 
@@ -177,17 +158,20 @@ class ExportWallet : Subcommand("export-wallet", "Export a wallet") {
  */
 class ImportWallet : Subcommand("import-wallet", "Import a wallet") {
     private val filename by argument(ArgType.String, "filename", "Input filename (json)")
+    private val walletName by option(ArgType.String, "name", "n", "Wallet name").default("")
     override fun execute() {
-        try {
-            val walletString = File(filename).readText()
-            val wallet = Json.decodeFromString<Wallet>(walletString)
-            val db = openDb()
+        val db = openDb()
+        val walletString = File(filename).readText()
+        val wallet = Json.decodeFromString<Wallet>(walletString)
+        if (walletName.isNotEmpty()) {
+            wallet._id = walletName
+        }
+        if (!walletExists(db, wallet._id)) {
             updateWallet(db, wallet)
             println(green("-- $name --"))
             println("Wallet imported")
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+        } else {
+            throw Exception("wallet name already exists")
         }
     }
 }
@@ -202,21 +186,15 @@ class NewDID : Subcommand("new-did", "Create a DID") {
     private val didAlias by argument(ArgType.String, "alias", "DID alias")
     private val issuer by option(ArgType.Boolean, "issuer", "i", "Add issuing and revocation keys").default(false)
     override fun execute() {
-        try {
-            val db = openDb()
-            var wallet = findWallet(db, walletName)
-
-            if (didAliasExists(db, walletName, didAlias)) {
-                throw Exception("Duplicated DID alias")
-            }
-            wallet = newDid(wallet, didAlias, issuer)
-            updateWallet(db, wallet)
-            println(green("-- $name --"))
-            println("DID created")
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+        val db = openDb()
+        var wallet = findWallet(db, walletName)
+        if (didAliasExists(db, walletName, didAlias)) {
+            throw Exception("Duplicated DID alias")
         }
+        wallet = newDid(wallet, didAlias, issuer)
+        updateWallet(db, wallet)
+        println(green("-- $name --"))
+        println("DID created")
     }
 }
 
@@ -225,20 +203,15 @@ class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and s
     private val didAlias by argument(ArgType.String, "alias", "DID alias")
     @OptIn(PrismSdkInternal::class, ExperimentalProtoJson::class)
     override fun execute() {
-        try {
-            val db = openDb()
-            var wallet = findWallet(db, walletName)
-            if (!didAliasExists(db, walletName, didAlias)) {
-                throw Exception("DID alias not found")
-            }
-            val dataModel = getDidDocument(wallet, didAlias)
-            println(green("-- $name --"))
-            println("DID document")
-            println(dataModel.toProto().encodeToJsonString())
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+        val db = openDb()
+        var wallet = findWallet(db, walletName)
+        if (!didAliasExists(db, walletName, didAlias)) {
+            throw Exception("DID alias not found")
         }
+        val dataModel = getDidDocument(wallet, didAlias)
+        println(green("-- $name --"))
+        println("DID document")
+        println(dataModel.toProto().encodeToJsonString())
     }
 }
 
@@ -250,21 +223,16 @@ class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and s
 class ListDID : Subcommand("list-dids", "List wallet DIDs") {
     private val walletName by argument(ArgType.String, "wallet", "Wallet name")
     override fun execute() {
-        try {
-            val db = openDb()
-            val wallet = findWallet(db, walletName)
-            val didList = wallet.dids
-            println(green("-- $name --"))
-            if (didList.isNotEmpty()) {
-                for (did in didList) {
-                    println(did.alias)
-                }
+        val db = openDb()
+        val wallet = findWallet(db, walletName)
+        val didList = wallet.dids
+        println(green("-- $name --"))
+        if (didList.isNotEmpty()) {
+            for (did in didList) {
+                println(did.alias)
             }
-            println("\t${didList.size} DID(s)")
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
         }
+        println("\t${didList.size} DID(s)")
     }
 }
 
@@ -277,20 +245,15 @@ class ShowDID : Subcommand("show-did", "Show a DID document") {
     private val walletName by argument(ArgType.String, "wallet", "Wallet name")
     private val didAlias by argument(ArgType.String, "alias", "DID alias")
     override fun execute() {
-        try {
-            val db = openDb()
-            val wallet = findWallet(db, walletName)
-            val didList = wallet.dids.filter { it.alias == didAlias }
-            if (didList.isNotEmpty()) {
-                val did = didList[0]
-                println(green("-- $name --"))
-                println(jsonFormat.encodeToString(did))
-            } else {
-                throw Exception("DID alias not found.")
-            }
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+        val db = openDb()
+        val wallet = findWallet(db, walletName)
+        val didList = wallet.dids.filter { it.alias == didAlias }
+        if (didList.isNotEmpty()) {
+            val did = didList[0]
+            println(green("-- $name --"))
+            println(jsonFormat.encodeToString(did))
+        } else {
+            throw Exception("DID alias not found.")
         }
     }
 }
@@ -304,20 +267,15 @@ class PublishDID : Subcommand("publish-did", "Publish a DID") {
     private val walletName by argument(ArgType.String, "wallet", "Wallet name")
     private val didAlias by argument(ArgType.String, "alias", "DID alias")
     override fun execute() {
-        try {
-            val db = openDb()
-            var wallet = findWallet(db, walletName)
-            if (didAliasExists(db, walletName, didAlias)) {
-                wallet = publishDid(wallet, didAlias)
-                updateWallet(db, wallet)
-                println(green("-- $name --"))
-                println("DID published")
-            } else {
-                throw Exception("DID not found")
-            }
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+        val db = openDb()
+        var wallet = findWallet(db, walletName)
+        if (didAliasExists(db, walletName, didAlias)) {
+            wallet = publishDid(wallet, didAlias)
+            updateWallet(db, wallet)
+            println(green("-- $name --"))
+            println("DID published")
+        } else {
+            throw Exception("DID not found")
         }
     }
 }
@@ -338,34 +296,29 @@ class IssueCred : Subcommand("issue-cred", "Issue a credential") {
     ).default("")
     // TODO: enable use of credential claim from json file
     override fun execute() {
-        try {
-            val db = openDb()
-            var wallet = findWallet(db, walletName)
-            if (didAliasExists(db, walletName, didAlias) &&
-                !issuedCredentialAliasExists(db, walletName, credentialAlias)
-            ) {
-                // Just for validation
-                PrismDid.fromDid(Did.fromString(holderUri))
-                val credential = IssuedCredential(
-                    credentialAlias,
-                    "",
-                    sampleCredentialClaim(holderUri),
-                    VerifiedCredential("", Proof("", 0, mutableListOf())),
-                    "",
-                    "",
-                    "",
-                    false
-                )
-                wallet = issueCredential(wallet, didAlias, credential)
-                updateWallet(db, wallet)
-                println(green("-- $name --"))
-                println("Credential issued")
-            } else {
-                throw Exception("Duplicated credential alias, wallet not found or DID not found")
-            }
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+        val db = openDb()
+        var wallet = findWallet(db, walletName)
+        if (didAliasExists(db, walletName, didAlias) &&
+            !issuedCredentialAliasExists(db, walletName, credentialAlias)
+        ) {
+            // Just for validation
+            PrismDid.fromDid(Did.fromString(holderUri))
+            val credential = IssuedCredential(
+                credentialAlias,
+                "",
+                sampleCredentialClaim(holderUri),
+                VerifiedCredential("", Proof("", 0, mutableListOf())),
+                "",
+                "",
+                "",
+                false
+            )
+            wallet = issueCredential(wallet, didAlias, credential)
+            updateWallet(db, wallet)
+            println(green("-- $name --"))
+            println("Credential issued")
+        } else {
+            throw Exception("Duplicated credential alias, wallet not found or DID not found")
         }
     }
 }
@@ -380,23 +333,18 @@ class VerifyCred : Subcommand("verify-cred", "Verify a credential") {
     private val list by argument(ArgType.Choice(listOf("issued", "imported"), { it }), "list", "List storing the credential")
     private val credentialAlias by argument(ArgType.String, "alias", "Credential alias")
     override fun execute() {
-        try {
-            val db = openDb()
-            val wallet = findWallet(db, walletName)
-            val result = if (list == "issued") {
-                verifyIssuedCredential(wallet, credentialAlias)
-            } else {
-                verifyImportedCredential(wallet, credentialAlias)
-            }
-            println(green("-- $name --"))
-            if (result.verificationErrors.isEmpty()) {
-                println(green("Valid credential."))
-            } else {
-                println(red("Invalid credential."))
-            }
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+        val db = openDb()
+        val wallet = findWallet(db, walletName)
+        val result = if (list == "issued") {
+            verifyIssuedCredential(wallet, credentialAlias)
+        } else {
+            verifyImportedCredential(wallet, credentialAlias)
+        }
+        println(green("-- $name --"))
+        if (result.verificationErrors.isEmpty()) {
+            println(green("Valid credential."))
+        } else {
+            println(red("Invalid credential."))
         }
     }
 }
@@ -411,17 +359,12 @@ class RevokeCred : Subcommand("revoke-cred", "Revoke a credential") {
     private val credentialAlias by argument(ArgType.String, "credential", "Credential alias")
 
     override fun execute() {
-        try {
-            val db = openDb()
-            val wallet = findWallet(db, walletName)
-            revokeCredential(wallet, credentialAlias)
-            updateWallet(db, wallet)
-            println(green("-- $name --"))
-            println("Credential revoked")
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
-        }
+        val db = openDb()
+        val wallet = findWallet(db, walletName)
+        revokeCredential(wallet, credentialAlias)
+        updateWallet(db, wallet)
+        println(green("-- $name --"))
+        println("Credential revoked")
     }
 }
 
@@ -435,24 +378,19 @@ class ExportCred : Subcommand("export-cred", "Export an issued credential") {
     private val credentialAlias by argument(ArgType.String, "alias", "Credential alias")
     private var filename by argument(ArgType.String, "filename", "Output filename (json)")
     override fun execute() {
-        try {
-            val db = openDb()
-            val wallet = findWallet(db, walletName)
-            val credentials = wallet.issuedCredentials.filter { it.alias == credentialAlias }
-            if (credentials.isNotEmpty()) {
-                val credential = credentials[0]
-                if (!filename.endsWith(".json")) {
-                    filename = "$filename.json"
-                }
-                File(filename).writeText(jsonFormat.encodeToString(credential.verifiedCredential))
-                println(green("-- $name --"))
-                println("Credential exported")
-            } else {
-                throw Exception("Credential not found")
+        val db = openDb()
+        val wallet = findWallet(db, walletName)
+        val credentials = wallet.issuedCredentials.filter { it.alias == credentialAlias }
+        if (credentials.isNotEmpty()) {
+            val credential = credentials[0]
+            if (!filename.endsWith(".json")) {
+                filename = "$filename.json"
             }
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+            File(filename).writeText(jsonFormat.encodeToString(credential.verifiedCredential))
+            println(green("-- $name --"))
+            println("Credential exported")
+        } else {
+            throw Exception("Credential not found")
         }
     }
 }
@@ -467,25 +405,20 @@ class ImportCred : Subcommand("import-cred", "Import a credential") {
     private val credentialAlias by argument(ArgType.String, "alias", "Credential alias")
     private var filename by argument(ArgType.String, "filename", "Input filename (json)")
     override fun execute() {
-        try {
-            val db = openDb()
-            if (!credentialAliasExists(db, walletName, credentialAlias)) {
-                val wallet = findWallet(db, walletName)
-                val text = File(filename).readText()
-                val importedCredential = ImportedCredential(
-                    credentialAlias,
-                    Json.decodeFromString<VerifiedCredential>(text)
-                )
-                wallet.importedCredentials.add(importedCredential)
-                updateWallet(db, wallet)
-                println(green("-- $name --"))
-                println("Credential imported")
-            } else {
-                throw Exception("Credential alias already in use")
-            }
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+        val db = openDb()
+        if (!credentialAliasExists(db, walletName, credentialAlias)) {
+            val wallet = findWallet(db, walletName)
+            val text = File(filename).readText()
+            val importedCredential = ImportedCredential(
+                credentialAlias,
+                Json.decodeFromString<VerifiedCredential>(text)
+            )
+            wallet.importedCredentials.add(importedCredential)
+            updateWallet(db, wallet)
+            println(green("-- $name --"))
+            println("Credential imported")
+        } else {
+            throw Exception("Credential alias already in use")
         }
     }
 }
@@ -501,31 +434,26 @@ class AddKey : Subcommand("add-key", "Add a key to a DID") {
     private val keyId by argument(ArgType.String, "keyId", "Key identifier")
     private val keyPurpose by argument(ArgType.Choice(listOf("master", "issuing", "revocation"), { it }), "keyType", "Key type")
     override fun execute() {
-        try {
-            val db = openDb()
-            var wallet = findWallet(db, walletName)
-            val keyType = when (keyPurpose) {
-                "master" -> PrismKeyType.MASTER_KEY
-                "issuing" -> PrismKeyType.ISSUING_KEY
-                "revocation" -> PrismKeyType.REVOCATION_KEY
-                else -> {
-                    throw Exception("Unknown key type")
-                }
+        val db = openDb()
+        var wallet = findWallet(db, walletName)
+        val keyType = when (keyPurpose) {
+            "master" -> PrismKeyType.MASTER_KEY
+            "issuing" -> PrismKeyType.ISSUING_KEY
+            "revocation" -> PrismKeyType.REVOCATION_KEY
+            else -> {
+                throw Exception("Unknown key type")
             }
-            if (didAliasExists(db, walletName, didAlias) &&
-                ! keyIdExists(db, walletName, didAlias, keyId)
-            ) {
-                wallet = addKey(wallet, didAlias, keyId, keyType)
-                updateWallet(db, wallet)
-                println(green("-- $name --"))
-                println("Key Added")
-                return
-            } else {
-                throw Exception("Duplicated keyId, wallet not found or DID not found")
-            }
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+        }
+        if (didAliasExists(db, walletName, didAlias) &&
+            ! keyIdExists(db, walletName, didAlias, keyId)
+        ) {
+            wallet = addKey(wallet, didAlias, keyId, keyType)
+            updateWallet(db, wallet)
+            println(green("-- $name --"))
+            println("Key Added")
+            return
+        } else {
+            throw Exception("Duplicated keyId, wallet not found or DID not found")
         }
     }
 }
@@ -541,18 +469,13 @@ class RevokeKey : Subcommand("revoke-key", "Revoke DID key") {
     private val keyId by argument(ArgType.String, "keyId", "Key identifier")
 
     override fun execute() {
-        try {
-            val db = openDb()
-            var wallet = findWallet(db, walletName)
-            if (keyIdExists(db, walletName, didAlias, keyId)) {
-                wallet = revokeKey(wallet, didAlias, keyId)
-                updateWallet(db, wallet)
-            } else {
-                throw Exception("keyId not found")
-            }
-        } catch (e: Exception) {
-            println(red("-- $name error --"))
-            e.printStackTrace()
+        val db = openDb()
+        var wallet = findWallet(db, walletName)
+        if (keyIdExists(db, walletName, didAlias, keyId)) {
+            wallet = revokeKey(wallet, didAlias, keyId)
+            updateWallet(db, wallet)
+        } else {
+            throw Exception("keyId not found")
         }
     }
 }
