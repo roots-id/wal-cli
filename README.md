@@ -23,9 +23,9 @@ CLI Identity Wallet Implementation
   [(PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
   Since the repo is private it should only work with the team members.
   
-    `ROOTS-ID_USER = <github user>`
+    `ROOTSID_USER = <github user>`
     
-    `ROOTS-ID_PASSWORD = <PAT Token>`
+    `ROOTSID_PASSWORD = <PAT Token>`
 
 
 ### Notes
