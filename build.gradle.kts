@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.rootsid.wal"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     mavenLocal()
@@ -31,8 +31,8 @@ repositories {
     maven {
         url = uri("https://maven.pkg.github.com/roots-id/wal-library")
         credentials {
-            username = System.getenv("ROOTS-ID_USER")
-            password = System.getenv("ROOTS-ID_PASSWORD")
+            username = System.getenv("GITHUB_USER")
+            password = System.getenv("GITHUB_TOKEN")
         }
     }
 }
@@ -43,7 +43,7 @@ dependencies {
     // Fixes a build issue
     implementation("com.soywiz.korlibs.krypto:krypto-jvm:2.0.6")
 
-    implementation("com.rootsid.wal:wal-library:1.0-SNAPSHOT")
+    implementation("com.rootsid.wal:wal-library:1.0.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
 
