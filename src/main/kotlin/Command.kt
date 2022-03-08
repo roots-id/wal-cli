@@ -294,19 +294,25 @@ class IssueCred : Subcommand("issue-cred", "Issue a credential") {
         ArgType.String, "Credential claim json file", "j",
         "Credential Subject json file. Placeholder json will be used if a filename isn't provided"
     ).default("")
-    // TODO: enable use of credential claim from json file
     override fun execute() {
         val db = openDb()
         var wallet = findWallet(db, walletName)
+        var claim: Claim
         if (didAliasExists(db, walletName, didAlias) &&
             !issuedCredentialAliasExists(db, walletName, credentialAlias)
         ) {
+            claim = if (jsonFilename.isNotEmpty()) {
+                val jsonString = File(jsonFilename).readText()
+                Claim(holderUri, jsonString)
+            } else {
+                sampleCredentialClaim(holderUri)
+            }
             // Just for validation
             PrismDid.fromDid(Did.fromString(holderUri))
             val credential = IssuedCredential(
                 credentialAlias,
                 "",
-                sampleCredentialClaim(holderUri),
+                claim,
                 VerifiedCredential("", Proof("", 0, mutableListOf())),
                 "",
                 "",
