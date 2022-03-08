@@ -9,7 +9,7 @@ CLI Identity Wallet Implementation
 
   - IOG Repository credentials:
   
-    `PRISM_SDK_USER = atala-dev`
+    `PRISM_SDK_USER = (Request to IOG)`
 
     `PRISM_SDK_PASSWORD = (Request to IOG)`
 
