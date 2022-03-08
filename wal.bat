@@ -1,0 +1,1 @@
+java -jar wal-cli-1.0-SNAPSHOT-all.jar %*
