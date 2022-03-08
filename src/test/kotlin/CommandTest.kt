@@ -4,6 +4,8 @@ import kotlinx.cli.ArgParser
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import java.io.File
+import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.test.assertContains
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -37,6 +39,11 @@ class CommandTest {
             UnpackCommand()
         )
         return parser
+    }
+
+    private fun getFilePath(filename: String): String {
+        val resourceDirectory: Path = Paths.get("src", "test", "resources", filename)
+        return resourceDirectory.toFile().absolutePath
     }
 
     @BeforeEach
@@ -112,7 +119,7 @@ class CommandTest {
     @Test
     fun exportWalletTest() {
         val walletName = "issuer_wallet"
-        val fileName = "test_wallet_export"
+        val fileName = getFilePath("test_wallet_export.json")
         // Export wallet
         assertDoesNotThrow("New wallet") {
             newParser().parse(arrayOf("new-wallet", walletName))
@@ -120,7 +127,7 @@ class CommandTest {
         assertDoesNotThrow("Export from existing wallet") {
             newParser().parse(arrayOf("export-wallet", walletName, fileName))
         }
-        assertEquals(true, File("$fileName.json").exists(), "wallet json file created")
+        assertEquals(true, File(fileName).exists(), "wallet json file created")
         File(fileName).delete()
         // non-existing wallet
         assertThrows<Exception>("Export from non existing wallet") {
@@ -132,7 +139,7 @@ class CommandTest {
     fun importWalletTest() {
         val walletName = "export_wallet"
         val otherName = "other_wallet"
-        val fileName = "test_wallet_import.json"
+        val fileName = getFilePath("test_wallet_import.json")
         // Export a wallet
         assertDoesNotThrow("New wallet") {
             newParser().parse(arrayOf("new-wallet", walletName))
@@ -160,6 +167,7 @@ class CommandTest {
         assertThrows<Exception>("Import wallet with bad file") {
             newParser().parse(arrayOf("import-wallet", "not-a-file"))
         }
+        File(fileName).delete()
     }
 
     @Test
@@ -436,7 +444,7 @@ class CommandTest {
         val issuerDidAlias = "issuer_did"
         val holderDidAlias = "holder_did"
         val credentialAlias = "credential"
-        val fileName = "credential.json"
+        val fileName = getFilePath("credential.json")
         // Wallet and dids
         assertDoesNotThrow("New wallet") {
             newParser().parse(arrayOf("new-wallet", walletName))
@@ -486,7 +494,7 @@ class CommandTest {
         val issuerDidAlias = "issuer_did"
         val holderDidAlias = "holder_did"
         val credentialAlias = "credential"
-        val fileName = "credential.json"
+        val fileName = getFilePath("credential.json")
         // Wallet and dids
         assertDoesNotThrow("New wallet") {
             newParser().parse(arrayOf("new-wallet", walletName))
