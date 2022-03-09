@@ -3,41 +3,64 @@ CLI Identity Wallet Implementation
 
 ## Requirements:
 
-- Install Mongodb: https://www.mongodb.com/try/download/community
+- Install Mongodb: https://www.mongodb.com/try/download/community  
+  **note:** WAL will connect to mongodb on localhost:27017
 
 - Set the following environment variables:
 
-  - IOG Repository credentials:
-  
-    `PRISM_SDK_USER = (Request to IOG)`
-
+  - IOG Repository credentials:    
+    `PRISM_SDK_USER = (Request to IOG)`  
     `PRISM_SDK_PASSWORD = (Request to IOG)`
 
-  - Atala PRISM Node host and port:
-
-    `PRISM_NODE_HOST = (Request to IOG)`
-
+  - Atala PRISM Node host and port:  
+    `PRISM_NODE_HOST = (Request to IOG)`  
     `PRISM_NODE_PORT = (Request to IOG, default 50053)`
 
   - Github credentials, generate a personal access token 
-  [(PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
-  
-    `GITHUB_USER = <github user>`
-    
-    `GITHUB_TOKEN = <PAT Token>`
+  [(PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).    
+    `GITHUB_USER = <github user>`      
+    `GITHUB_TOKEN = <PAT Token>`  
+## Installation
 
+- Clone this repository
+- Using a terminal run the following command on the repository root folder: `gradle run shadowJar`
+- Use the command `./wal.sh -h` (linux) or `wal -h` (windows) to see WAL options:
+
+```
+Usage: wal options_list
+Subcommands:
+    new-wallet - Create a wallet
+    list-wallets - List wallets
+    show-mnemonic - Show wallet mnemonic phrase and passphrase
+    export-wallet - Export a wallet
+    import-wallet - Import a wallet
+    new-did - Create a DID
+    list-dids - List wallet DIDs
+    show-did - Show a DID document
+    publish-did - Publish a DID
+    resolve-prism-did - Resolve PRISM did and show DID document
+    issue-cred - Issue a credential
+    verify-cred - Verify a credential
+    export-cred - Export an issued credential
+    import-cred - Import a credential
+    revoke-cred - Revoke a credential
+    add-key - Add a key to a DID
+    revoke-key - Revoke DID key
+    create-peer-did - Creates a new Peer DID and corresponding secrets
+    resolve-peer-did - Resolve a Peer DID to DID Doc JSON
+    pack - Packs the message
+    unpack - Unpacks the message
+
+Options:
+    --help, -h -> Usage info
+```
 
 ### Notes
-- On Windows restart IDE after adding/changing environment variables.
-- Windows WSL + 2 setup:
+- Windows WSL2 setup:
   - Mongodb Windows WSL setup [here](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-mongodb)
-  - To add environment variable:  
-    `nano ~/.bashrc`
-  - Add the environment variables to the file:  
-    `export <variable name>= <value>`
-  - To display QR on screen, Install [vcxsrv](https://sourceforge.net/projects/vcxsrv/) and add the following to 
-  ~/.bashrc file:  
-    `export DISPLAY=<X11 Host>:0.0`
-  - To start mongodb:  
-  `sudo mongod --dbpath ~/data/db`
+  - To add environment variables: `nano ~/.bashrc`
+  - Add the environment variables to the file: `export <variable name>= <value>`
+  - load the new envvars: `source ~/.bashrc`
+  - Check envvars: `printenv`
+  - To start mongodb: `sudo mongod --dbpath ~/data/db`
 
