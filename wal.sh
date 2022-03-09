@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cmd="./gradlew run --args=\"$@\""
-eval "$cmd"
+cmd="java -jar ./build/libs/wal-cli-1.0.0-all.jar $@"
+eval $cmd
 
 

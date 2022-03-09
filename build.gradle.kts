@@ -1,12 +1,17 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
+    // To generate executable jar (because of issue with long classpath on Windows)
+    // https://imperceptiblethoughts.com/shadow/introduction/#benefits-of-shadow
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("java")
+
     kotlin("jvm") version "1.6.10"
     application
 }
 
 group = "com.rootsid.wal"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     mavenLocal()
@@ -26,8 +31,8 @@ repositories {
     maven {
         url = uri("https://maven.pkg.github.com/roots-id/wal-library")
         credentials {
-            username = System.getenv("ROOTS-ID_USER")
-            password = System.getenv("ROOTS-ID_PASSWORD")
+            username = System.getenv("GITHUB_USER")
+            password = System.getenv("GITHUB_TOKEN")
         }
     }
 }
@@ -38,26 +43,33 @@ dependencies {
     // Fixes a build issue
     implementation("com.soywiz.korlibs.krypto:krypto-jvm:2.0.6")
 
-    implementation("com.rootsid.wal:wal-library:1.0-SNAPSHOT")
+    implementation("com.rootsid.wal:wal-library:1.0.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
 
-    // TODO: Review if this goes here or in wal-library
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
+
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
 
     implementation("com.github.ajalt.mordant:mordant:2.0.0-beta3")
 
-    implementation("io.iohk.atala:prism-crypto:1.2.0")
+    implementation("io.iohk.atala:prism-crypto:1.3.0")
 
-    implementation("io.iohk.atala:prism-identity:1.2.0")
+    implementation("io.iohk.atala:prism-identity:1.3.0")
 
-    implementation("io.iohk.atala:prism-credentials:1.2.0")
+    implementation("io.iohk.atala:prism-credentials:1.3.0")
 
-    implementation("io.iohk.atala:prism-api:1.2.0")
+    implementation("io.iohk.atala:prism-api:1.3.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 
     implementation("org.litote.kmongo:kmongo:4.4.0")
+
+    implementation("org.didcommx:didcomm:0.3.0")
+
+    implementation("org.didcommx:peerdid:0.3.0")
+
+    implementation("org.junit.jupiter:junit-jupiter:5.8.2")
 }
 
 tasks.test {
