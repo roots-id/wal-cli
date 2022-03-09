@@ -9,7 +9,7 @@ CLI Identity Wallet Implementation
 
   - IOG Repository credentials:
   
-    `PRISM_SDK_USER = atala-dev`
+    `PRISM_SDK_USER = (Request to IOG)`
 
     `PRISM_SDK_PASSWORD = (Request to IOG)`
 
@@ -19,13 +19,12 @@ CLI Identity Wallet Implementation
 
     `PRISM_NODE_PORT = (Request to IOG, default 50053)`
 
-  - RootsId Repository credentials, generate a personal access token 
+  - Github credentials, generate a personal access token 
   [(PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
-  Since the repo is private it should only work with the team members.
   
-    `ROOTS-ID_USER = <github user>`
+    `GITHUB_USER = <github user>`
     
-    `ROOTS-ID_PASSWORD = <PAT Token>`
+    `GITHUB_TOKEN = <PAT Token>`
 
 
 ### Notes
