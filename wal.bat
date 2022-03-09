@@ -1,1 +1,1 @@
-java -jar wal-cli-1.0-SNAPSHOT-all.jar %*
+java -jar .\build\libs\wal-cli-1.0.0-all.jar %*
