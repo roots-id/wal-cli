@@ -55,6 +55,13 @@ Options:
     --help, -h -> Usage info
 ```
 
+# See also
+
+- [Tutorial](https://github.com/roots-id/wal-cli/wiki/Usage-examples)  
+- [Technical discussions regarding WAL-CLI implementation](https://github.com/roots-id/wal-cli/discussions/2)
+- [Bug Report and feature request](https://github.com/roots-id/wal-cli/issues/new/choose)
+- [Original proposal](https://cardano.ideascale.com/c/idea/381281)
+
 ### Notes
 - Windows WSL2 setup:
   - Mongodb Windows WSL setup [here](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-mongodb)
