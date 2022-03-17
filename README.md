@@ -17,7 +17,7 @@ CLI Identity Wallet Implementation
     `PRISM_NODE_PORT = (Request to IOG, default 50053)`
 
   - Github credentials, generate a personal access token 
-  [(PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).    
+  [(PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with **read:packages** option enabled.    
     `GITHUB_USER = <github user>`      
     `GITHUB_TOKEN = <PAT Token>`  
 ## Installation
