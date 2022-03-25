@@ -1,13 +1,9 @@
 @file:OptIn(ExperimentalCli::class)
-
 import com.github.ajalt.mordant.rendering.TextColors.green
 import com.github.ajalt.mordant.rendering.TextColors.red
 import com.rootsid.wal.library.*
 import io.iohk.atala.prism.common.PrismSdkInternal
-import io.iohk.atala.prism.identity.Did
-import io.iohk.atala.prism.identity.PrismDid
-import io.iohk.atala.prism.identity.PrismKeyType
-import io.iohk.atala.prism.identity.toProto
+import io.iohk.atala.prism.identity.*
 import kotlinx.cli.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -204,7 +200,7 @@ class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and s
     @OptIn(PrismSdkInternal::class, ExperimentalProtoJson::class)
     override fun execute() {
         val db = openDb()
-        var wallet = findWallet(db, walletName)
+        val wallet = findWallet(db, walletName)
         if (!didAliasExists(db, walletName, didAlias)) {
             throw Exception("DID alias not found")
         }
@@ -297,7 +293,7 @@ class IssueCred : Subcommand("issue-cred", "Issue a credential") {
     override fun execute() {
         val db = openDb()
         var wallet = findWallet(db, walletName)
-        var claim: Claim
+        val claim: Claim
         if (didAliasExists(db, walletName, didAlias) &&
             !issuedCredentialAliasExists(db, walletName, credentialAlias)
         ) {
@@ -439,13 +435,14 @@ class AddKey : Subcommand("add-key", "Add a key to a DID") {
     private val didAlias by argument(ArgType.String, "alias", "DID alias")
     private val keyId by argument(ArgType.String, "keyId", "Key identifier")
     private val keyPurpose by argument(ArgType.Choice(listOf("master", "issuing", "revocation"), { it }), "keyType", "Key type")
+    @OptIn(PrismSdkInternal::class)
     override fun execute() {
         val db = openDb()
         var wallet = findWallet(db, walletName)
-        val keyType = when (keyPurpose) {
-            "master" -> PrismKeyType.MASTER_KEY
-            "issuing" -> PrismKeyType.ISSUING_KEY
-            "revocation" -> PrismKeyType.REVOCATION_KEY
+        val keyTypeValue = when (keyPurpose) {
+            "master" -> MasterKeyUsage.toProto().value
+            "issuing" -> IssuingKeyUsage.toProto().value
+            "revocation" -> RevocationKeyUsage.toProto().value
             else -> {
                 throw Exception("Unknown key type")
             }
@@ -453,7 +450,7 @@ class AddKey : Subcommand("add-key", "Add a key to a DID") {
         if (didAliasExists(db, walletName, didAlias) &&
             ! keyIdExists(db, walletName, didAlias, keyId)
         ) {
-            wallet = addKey(wallet, didAlias, keyId, keyType)
+            wallet = addKey(wallet, didAlias, keyId, keyTypeValue)
             updateWallet(db, wallet)
             println(green("-- $name --"))
             println("Key Added")

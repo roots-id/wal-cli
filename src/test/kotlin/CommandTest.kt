@@ -1,6 +1,8 @@
+@file:OptIn(ExperimentalCli::class)
 import com.mongodb.client.MongoDatabase
 import com.rootsid.wal.library.*
 import kotlinx.cli.ArgParser
+import kotlinx.cli.ExperimentalCli
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import java.io.File
@@ -609,17 +611,17 @@ class CommandTest {
         val keyId = "master1"
         val keyPurpose = "master"
         // Wallet and dids
-        assertDoesNotThrow("New wallet") {
+        assertDoesNotThrow("addKeyTest - New wallet") {
             newParser().parse(arrayOf("new-wallet", walletName))
         }
-        assertDoesNotThrow("New issuer DID") {
+        assertDoesNotThrow("addKeyTest - New issuer DID") {
             newParser().parse(arrayOf("new-did", walletName, issuerDidAlias, "-i"))
         }
-        assertDoesNotThrow("Publish issuer DID") {
+        assertDoesNotThrow("addKeyTest - Publish issuer DID") {
             newParser().parse(arrayOf("publish-did", walletName, issuerDidAlias))
         }
         // New Key
-        assertDoesNotThrow("New key") {
+        assertDoesNotThrow("addKeyTest - New key") {
             newParser().parse(
                 arrayOf(
                     "add-key",
