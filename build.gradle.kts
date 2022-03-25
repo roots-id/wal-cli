@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.rootsid.wal"
-version = "1.0.0"
+version = "1.0.1-SNAPSHOT"
 
 repositories {
     mavenLocal()
@@ -43,27 +43,27 @@ dependencies {
     // Fixes a build issue
     implementation("com.soywiz.korlibs.krypto:krypto-jvm:2.0.6")
 
-    implementation("com.rootsid.wal:wal-library:1.0.0")
+    implementation("io.iohk.atala:prism-crypto:v1.3.2")
+
+    implementation("io.iohk.atala:prism-identity:v1.3.2")
+
+    implementation("io.iohk.atala:prism-credentials:v1.3.2")
+
+    implementation("io.iohk.atala:prism-api:v1.3.2")
+
+    implementation("com.rootsid.wal:wal-library:1.0.1-SNAPSHOT")
 
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-native-mt")
 
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.1")
 
     implementation("com.github.ajalt.mordant:mordant:2.0.0-beta3")
 
-    implementation("io.iohk.atala:prism-crypto:1.3.0")
-
-    implementation("io.iohk.atala:prism-identity:1.3.0")
-
-    implementation("io.iohk.atala:prism-credentials:1.3.0")
-
-    implementation("io.iohk.atala:prism-api:1.3.0")
-
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 
-    implementation("org.litote.kmongo:kmongo:4.4.0")
+    implementation("org.litote.kmongo:kmongo:4.5.0")
 
     implementation("org.didcommx:didcomm:0.3.0")
 
