@@ -207,7 +207,7 @@ class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and s
         val dataModel = getDidDocument(wallet, didAlias)
         println(green("-- $name --"))
         println("DID document")
-        println(dataModel.toProto().encodeToJsonString())
+        println(dataModel.didData.toProto().encodeToJsonString())
     }
 }
 
