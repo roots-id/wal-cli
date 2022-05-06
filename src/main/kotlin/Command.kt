@@ -343,7 +343,7 @@ class VerifyCred : Subcommand("verify-cred", "Verify a credential") {
             verifyImportedCredential(wallet, credentialAlias)
         }
         println(green("-- $name --"))
-        if (result.verificationErrors.isEmpty()) {
+        if (result.isEmpty()) {
             println(green("Valid credential."))
         } else {
             println(red("Invalid credential."))
