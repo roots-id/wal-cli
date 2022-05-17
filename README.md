@@ -55,6 +55,9 @@ Subcommands:
 Options:
     --help, -h -> Usage info
 ```
+# Important  
+
+The tool isn't intended for production use. Its design doesn't contemplate security. Data is stored in the database in plain text to expose the semantics and facilitate inspection. Eventually, an encryption layer will be added but right now is not a priority.
 
 # See also
 
