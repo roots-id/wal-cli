@@ -3,6 +3,8 @@ CLI Identity Wallet Implementation
 
 ## Requirements:
 
+- Gradle version 7, or newer  
+
 - Install Mongodb: https://www.mongodb.com/try/download/community  
   **note:** WAL will connect to mongodb on localhost:27017
 
