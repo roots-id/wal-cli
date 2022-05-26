@@ -194,7 +194,30 @@ class NewDID : Subcommand("new-did", "Create a DID") {
     }
 }
 
-class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and show DID document") {
+/**
+ * Show d i d
+ *
+ * @constructor Create empty Show d i d
+ */
+class ShowDIDData : Subcommand("show-did-data", "Show DID data") {
+    private val walletName by argument(ArgType.String, "wallet", "Wallet name")
+    private val didAlias by argument(ArgType.String, "alias", "DID alias")
+    override fun execute() {
+        val db = openDb()
+        val wallet = findWallet(db, walletName)
+        val didList = wallet.dids.filter { it.alias == didAlias }
+        if (didList.isNotEmpty()) {
+            val did = didList[0]
+            println(green("-- $name --"))
+            println("DID data")
+            println(jsonFormat.encodeToString(did))
+        } else {
+            throw Exception("DID alias not found.")
+        }
+    }
+}
+
+class ShowDID : Subcommand("show-did", "Show DID document") {
     private val walletName by argument(ArgType.String, "wallet", "Wallet name")
     private val didAlias by argument(ArgType.String, "alias", "DID alias")
     @OptIn(PrismSdkInternal::class, ExperimentalProtoJson::class)
@@ -205,6 +228,17 @@ class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and s
             throw Exception("DID alias not found")
         }
         val dataModel = getDidDocument(wallet, didAlias)
+        println(green("-- $name --"))
+        println("DID document")
+        println(dataModel.didData.toProto().encodeToJsonString())
+    }
+}
+
+class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and show DID document") {
+    private val did by argument(ArgType.String, "did", "PRISM did (canonical or long form)")
+    @OptIn(PrismSdkInternal::class, ExperimentalProtoJson::class)
+    override fun execute() {
+        val dataModel = getDidDocument(did)
         println(green("-- $name --"))
         println("DID document")
         println(dataModel.didData.toProto().encodeToJsonString())
@@ -229,28 +263,6 @@ class ListDID : Subcommand("list-dids", "List wallet DIDs") {
             }
         }
         println("\t${didList.size} DID(s)")
-    }
-}
-
-/**
- * Show d i d
- *
- * @constructor Create empty Show d i d
- */
-class ShowDID : Subcommand("show-did", "Show a DID document") {
-    private val walletName by argument(ArgType.String, "wallet", "Wallet name")
-    private val didAlias by argument(ArgType.String, "alias", "DID alias")
-    override fun execute() {
-        val db = openDb()
-        val wallet = findWallet(db, walletName)
-        val didList = wallet.dids.filter { it.alias == didAlias }
-        if (didList.isNotEmpty()) {
-            val did = didList[0]
-            println(green("-- $name --"))
-            println(jsonFormat.encodeToString(did))
-        } else {
-            throw Exception("DID alias not found.")
-        }
     }
 }
 
