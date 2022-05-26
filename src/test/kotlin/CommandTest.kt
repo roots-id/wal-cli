@@ -19,15 +19,16 @@ class CommandTest {
         val parser = ArgParser("wal")
         parser.subcommands(
             NewWallet(),
-            ListWallets(),
             ShowMnemonic(),
             ExportWallet(),
             ImportWallet(),
+            ListWallets(),
             NewDID(),
-            ListDID(),
-            ShowDID(),
             PublishDID(),
+            ShowDIDData(),
+            ShowDID(),
             ResolvePrismDid(),
+            ListDID(),
             IssueCred(),
             VerifyCred(),
             ExportCred(),
@@ -241,7 +242,7 @@ class CommandTest {
     }
 
     @Test
-    fun showDIDTest() {
+    fun showDIDDataTest() {
         val walletName = "holder_wallet"
         val holderDidAlias = "holder_did"
         assertDoesNotThrow("New wallet") {
@@ -252,15 +253,15 @@ class CommandTest {
         }
         // Show DID
         assertDoesNotThrow("Show dids") {
-            newParser().parse(arrayOf("show-did", walletName, holderDidAlias))
+            newParser().parse(arrayOf("show-did-data", walletName, holderDidAlias))
         }
         // unknown wallet
         assertThrows<Exception>("unknown wallet") {
-            newParser().parse(arrayOf("show-did", "not-a-wallet", holderDidAlias))
+            newParser().parse(arrayOf("show-did-data", "not-a-wallet", holderDidAlias))
         }
         // unknown did
         assertThrows<Exception>("unknown did") {
-            newParser().parse(arrayOf("show-did", walletName, "not-a-did"))
+            newParser().parse(arrayOf("show-did-data", walletName, "not-a-did"))
         }
     }
 
@@ -289,7 +290,7 @@ class CommandTest {
     }
 
     @Test
-    fun resolvePrismDidTest() {
+    fun showDidTest() {
         val issuerWallet = "issuer_wallet"
         val issuerDidAlias = "issuer_did"
         // resolve issuer did
@@ -300,15 +301,15 @@ class CommandTest {
             newParser().parse(arrayOf("new-did", issuerWallet, issuerDidAlias, "-i"))
         }
         assertDoesNotThrow("Resolve issuer DID") {
-            newParser().parse(arrayOf("resolve-prism-did", issuerWallet, issuerDidAlias))
+            newParser().parse(arrayOf("show-did", issuerWallet, issuerDidAlias))
         }
         // unknown wallet
         assertThrows<Exception>("unknown wallet") {
-            newParser().parse(arrayOf("resolve-prism-did", "not-a-wallet", issuerDidAlias))
+            newParser().parse(arrayOf("show-did", "not-a-wallet", issuerDidAlias))
         }
         // unknown did alias
         assertThrows<Exception>("unknown DID alias") {
-            newParser().parse(arrayOf("resolve-prism-did", issuerWallet, "not-an-alias"))
+            newParser().parse(arrayOf("show-did", issuerWallet, "not-an-alias"))
         }
     }
 
