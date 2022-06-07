@@ -25,6 +25,7 @@ CLI Identity Wallet Implementation
 ## Installation
 
 - Clone this repository
+- Checkout the main branch ⚠
 - Using a terminal run the following command on the repository root folder: `gradle run shadowJar`
 - On linux and mac run: `chmod u+x wal.sh` 
 - Use the command `./wal.sh -h` (linux, mac) or `wal -h` (windows) to see WAL options:
