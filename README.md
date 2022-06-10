@@ -71,10 +71,14 @@ The tool isn't intended for production use. Its design doesn't contemplate secur
 
 ### Notes
 - Windows WSL2 setup:
-  - Mongodb Windows WSL setup [here](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-mongodb)
-  - To add environment variables: `nano ~/.bashrc`
-  - Add the environment variables to the file: `export <variable name>= <value>`
-  - load the new envvars: `source ~/.bashrc`
-  - Check envvars: `printenv`
-  - To start mongodb: `sudo mongod --dbpath ~/data/db`
+  - Mongodb:
+    - Mongodb Windows WSL setup [here](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-mongodb)
+    - To start mongodb: `sudo mongod --dbpath ~/data/db`
+    - Check if the mongo instance is running `ps -e | grep 'mongod'`
+    - mongosh usage [instructions](https://www.mongodb.com/docs/mongodb-shell/run-commands/)
+  - Environment variables:
+    - To add environment variables: `nano ~/.bashrc`
+    - Add the environment variables to the file: `export <variable name>= <value>`
+    - load the new envvars: `source ~/.bashrc`
+    - Check envvars: `printenv`
 
