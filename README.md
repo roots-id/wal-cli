@@ -24,8 +24,8 @@ CLI Identity Wallet Implementation
     `GITHUB_TOKEN = <PAT Token>`  
 ## Installation
 
-- Clone this repository
-- Checkout the main branch ⚠
+- Clone this repository: `git clone https://github.com/roots-id/wal-cli.git`
+- Checkout the main branch: `git checkout main` ⚠
 - Using a terminal run the following command on the repository root folder: `gradle run shadowJar`
 - On linux and mac run: `chmod u+x wal.sh` 
 - Use the command `./wal.sh -h` (linux, mac) or `wal -h` (windows) to see WAL options:
