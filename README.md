@@ -24,7 +24,8 @@ CLI Identity Wallet Implementation
     `GITHUB_TOKEN = <PAT Token>`  
 ## Installation
 
-- Clone this repository
+- Clone this repository: `git clone https://github.com/roots-id/wal-cli.git`
+- Checkout the main branch: `git checkout main` ⚠
 - Using a terminal run the following command on the repository root folder: `gradle run shadowJar`
 - On linux and mac run: `chmod u+x wal.sh` 
 - Use the command `./wal.sh -h` (linux, mac) or `wal -h` (windows) to see WAL options:
@@ -70,10 +71,14 @@ The tool isn't intended for production use. Its design doesn't contemplate secur
 
 ### Notes
 - Windows WSL2 setup:
-  - Mongodb Windows WSL setup [here](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-mongodb)
-  - To add environment variables: `nano ~/.bashrc`
-  - Add the environment variables to the file: `export <variable name>= <value>`
-  - load the new envvars: `source ~/.bashrc`
-  - Check envvars: `printenv`
-  - To start mongodb: `sudo mongod --dbpath ~/data/db`
+  - Mongodb:
+    - Mongodb Windows WSL setup [here](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-mongodb)
+    - To start mongodb: `sudo mongod --dbpath ~/data/db`
+    - Check if the mongo instance is running `ps -e | grep 'mongod'`
+    - mongosh usage [instructions](https://www.mongodb.com/docs/mongodb-shell/run-commands/)
+  - Environment variables:
+    - To add environment variables: `nano ~/.bashrc`
+    - Add the environment variables to the file: `export <variable name>= <value>`
+    - load the new envvars: `source ~/.bashrc`
+    - Check envvars: `printenv`
 
