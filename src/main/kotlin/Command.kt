@@ -4,14 +4,11 @@ import com.github.ajalt.mordant.rendering.TextColors.red
 import com.rootsid.wal.library.*
 import io.iohk.atala.prism.common.PrismSdkInternal
 import io.iohk.atala.prism.identity.*
-import io.iohk.atala.prism.crypto.*
 import kotlinx.cli.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import org.didcommx.didcomm.exceptions.DIDCommException
 import org.didcommx.peerdid.MalformedPeerDIDException
@@ -21,7 +18,6 @@ import pbandk.json.encodeToJsonString
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import io.ipfs.multibase.Base58
 
 // Use jsonFormat.encodeToString(did) to convert data class to pretty print json
 val jsonFormat = Json { prettyPrint = true; encodeDefaults = true ; }
@@ -241,50 +237,13 @@ class ShowDID : Subcommand("show-did", "Show DID document") {
 class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and show DID document") {
     private val did by argument(ArgType.String, "did", "PRISM did (canonical or long form)")
     private val w3c by option(ArgType.Boolean, "w3c", "w3c", "W3C compliant DID document").default(false)
-
     @OptIn(PrismSdkInternal::class, ExperimentalProtoJson::class)
     override fun execute() {
         val dataModel = getDidDocument(did)
         println(green("-- $name --"))
         println("DID document")
         if (w3c) {
-            fun byteArrayOfInts(ints: List<String>) = ByteArray(ints.size) { pos -> ints[pos].toInt().toByte() }
-            fun String.decodeHex(): ByteArray {
-                check(length % 2 == 0) { "Must have an even length" }
-            
-                return chunked(2)
-                    .map { it.toInt(16).toByte() }
-                    .toByteArray()
-            }
-            
-            var didDocW3C = mutableMapOf<String, JsonElement>(
-                "@context" to JsonArray(listOf(JsonPrimitive("https://www.w3.org/ns/did/v1"))),
-                "id" to JsonPrimitive(did),
-                "assertionMethod" to JsonArray(listOf(JsonPrimitive(did+"#master0"))),
-            )
-            var verificationMethods: MutableList<JsonObject> = ArrayList()
-            // TODO parsing a string is not the best way to access the object. Need to figure out
-            // how to access OneOf.CompressedEcKeyData directly
-            for (pubk in dataModel.didData.publicKeys){
-                val keyId = pubk.didPublicKey.toProto().id
-                val dataStr = pubk.didPublicKey.toProto().keyData.toString()
-                    .replace("OneOf.CompressedEcKeyData(CompressedECKeyData(curve=secp256k1, data=[","")
-                    .replace("], unknownFields={}))","")
-                    .replace(" ","")
-                val dataArr = dataStr.split(",")
-                val dataCompress = byteArrayOfInts(dataArr)
-                val dataHexa = EC.toPublicKeyFromCompressed(dataCompress).getHexEncoded()
-                verificationMethods.add(JsonObject(mapOf(
-                    "@context" to JsonArray(listOf(JsonPrimitive("https://w3id.org/security/v1"))),
-                    "id" to JsonPrimitive(did + "#" + keyId),
-                    "type" to JsonPrimitive("EcdsaSecp256k1VerificationKey2019"),
-                    "controller" to JsonPrimitive(did),
-                    "publicKeyBase58" to JsonPrimitive(Base58.encode(dataHexa.drop(2).decodeHex()))
-                )))
-
-            }
-            didDocW3C["verificationMethod"] = JsonArray(verificationMethods)
-            println(JsonObject(didDocW3C))
+            println(getDidDocumentW3C(did))
         } else {
             println(dataModel.didData.toProto().encodeToJsonString())
         }

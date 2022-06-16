@@ -2,6 +2,7 @@
 .idea/
 build/
 gradle/
+bin/
 
 *.jar
 *.war
@@ -22,3 +23,6 @@ gradle-app.setting
 
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
 # gradle/wrapper/gradle-wrapper.properties
+
+# Mac OS generated file
+.DS_Store
