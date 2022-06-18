@@ -236,12 +236,17 @@ class ShowDID : Subcommand("show-did", "Show DID document") {
 
 class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and show DID document") {
     private val did by argument(ArgType.String, "did", "PRISM did (canonical or long form)")
+    private val w3c by option(ArgType.Boolean, "w3c", "w3c", "W3C compliant DID document").default(false)
     @OptIn(PrismSdkInternal::class, ExperimentalProtoJson::class)
     override fun execute() {
         val dataModel = getDidDocument(did)
         println(green("-- $name --"))
         println("DID document")
-        println(dataModel.didData.toProto().encodeToJsonString())
+        if (w3c) {
+            println(getDidDocumentW3C(did))
+        } else {
+            println(dataModel.didData.toProto().encodeToJsonString())
+        }
     }
 }
 
