@@ -242,11 +242,11 @@ class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and s
         val dataModel = getDidDocument(did)
         println(green("-- $name --"))
         println("DID document")
-        if (w3c) {
-            println(getDidDocumentW3C(did))
-        } else {
+//        if (w3c) {
+//            println(getDidDocumentW3C(did))
+//        } else {
             println(dataModel.didData.toProto().encodeToJsonString())
-        }
+//        }
     }
 }
 

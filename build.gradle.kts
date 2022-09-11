@@ -44,15 +44,15 @@ dependencies {
     // Fixes a build issue
     implementation("com.soywiz.korlibs.krypto:krypto-jvm:2.0.6")
 
-    implementation("io.iohk.atala:prism-crypto:v1.3.3")
+    implementation("io.iohk.atala:prism-crypto:v1.4.1")
 
-    implementation("io.iohk.atala:prism-identity:v1.3.3")
+    implementation("io.iohk.atala:prism-identity:v1.4.1")
 
-    implementation("io.iohk.atala:prism-credentials:v1.3.3")
+    implementation("io.iohk.atala:prism-credentials:v1.4.1")
 
-    implementation("io.iohk.atala:prism-api:v1.3.3")
+    implementation("io.iohk.atala:prism-api:v1.4.1")
 
-    implementation("com.rootsid.wal:wal-library:1.0.1-SNAPSHOT")
+    implementation("com.rootsid.wal:wal-library:1.0.2")
 
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
 
