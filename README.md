@@ -17,6 +17,9 @@ CLI Identity Wallet Implementation
   - Atala PRISM Node host and port:  
     `PRISM_NODE_HOST = (Request to IOG)`  
     `PRISM_NODE_PORT = (Request to IOG, default 50053)`
+  - Atala PRISM protocol and token:
+    `PRISM_NODE_PROTOCOL = http`
+    `PRISM_NODE_TOKEN = null`
 
   - Github credentials, generate a personal access token 
   [(PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with **read:packages** option enabled.    

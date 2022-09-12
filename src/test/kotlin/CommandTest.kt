@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalCli::class)
 import com.mongodb.client.MongoDatabase
 import com.rootsid.wal.library.*
+import io.iohk.atala.prism.crypto.derivation.KeyDerivation
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ExperimentalCli
 import org.junit.jupiter.api.*
@@ -91,11 +92,13 @@ class CommandTest {
     @Test
     fun showMnemonicTest() {
         val walletName = "issuer_wallet"
-        val mnemonic = "dragon,crouch,globe,width,vanish,frown,sadness,rose,mule,noodle,help,cover"
+//        val mnemonic = "dragon,crouch,globe,width,vanish,frown,sadness,rose,mule,noodle,help,cover"
+        val mnemonic = KeyDerivation.randomMnemonicCode().words.reduce{ acc, string -> "$acc,$string" }
         val passphrase = "secret"
         // New wallet
+        println("generated mnemonic $mnemonic")
         assertDoesNotThrow("New wallet") {
-            newParser().parse(arrayOf("new-wallet", walletName, "-m", mnemonic, "-p", passphrase))
+            newParser().parse(arrayOf<String>("new-wallet", walletName, "-m", mnemonic, "-p", passphrase))
         }
         assertDoesNotThrow("Show mnemonic from existing wallet") {
             newParser().parse(arrayOf("show-mnemonic", walletName))

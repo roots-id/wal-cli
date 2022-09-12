@@ -52,7 +52,7 @@ dependencies {
 
     implementation("io.iohk.atala:prism-api:v1.4.1")
 
-    implementation("com.rootsid.wal:wal-library:1.0.2")
+    implementation("com.rootsid.wal:wal-library:1.0.3")
 
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
 
