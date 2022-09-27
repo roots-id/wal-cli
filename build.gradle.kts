@@ -51,8 +51,8 @@ dependencies {
     implementation("io.iohk.atala:prism-credentials:v1.4.1")
 
     implementation("io.iohk.atala:prism-api:v1.4.1")
-
-    implementation("com.rootsid.wal:wal-library:1.0.3")
+    
+    implementation("com.rootsid.wal:wal-library:1.0.4-SNAPSHOT")
 
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
 
