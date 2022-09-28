@@ -1,4 +1,5 @@
 @file:OptIn(ExperimentalCli::class)
+
 import com.github.ajalt.mordant.rendering.TextColors.green
 import com.github.ajalt.mordant.rendering.TextColors.red
 import com.rootsid.wal.library.*
@@ -138,7 +139,7 @@ class ExportWallet : Subcommand("export-wallet", "Export a wallet") {
         val db = openDb()
         val wallet = findWallet(db, walletName)
         val walletString = jsonFormat.encodeToString(wallet)
-        if (! filename.endsWith(".json")) {
+        if (!filename.endsWith(".json")) {
             filename = "$filename.json"
         }
         File(filename).writeText(walletString)
@@ -220,6 +221,7 @@ class ShowDIDData : Subcommand("show-did-data", "Show DID data") {
 class ShowDID : Subcommand("show-did", "Show DID document") {
     private val walletName by argument(ArgType.String, "wallet", "Wallet name")
     private val didAlias by argument(ArgType.String, "alias", "DID alias")
+
     @OptIn(PrismSdkInternal::class, ExperimentalProtoJson::class)
     override fun execute() {
         val db = openDb()
@@ -237,6 +239,7 @@ class ShowDID : Subcommand("show-did", "Show DID document") {
 class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and show DID document") {
     private val did by argument(ArgType.String, "did", "PRISM did (canonical or long form)")
     private val w3c by option(ArgType.Boolean, "w3c", "w3c", "W3C compliant DID document").default(false)
+
     @OptIn(PrismSdkInternal::class, ExperimentalProtoJson::class)
     override fun execute() {
         val dataModel = getDidDocument(did)
@@ -245,7 +248,7 @@ class ResolvePrismDid : Subcommand("resolve-prism-did", "Resolve PRISM did and s
 //        if (w3c) {
 //            println(getDidDocumentW3C(did))
 //        } else {
-            println(dataModel.didData.toProto().encodeToJsonString())
+        println(dataModel.didData.toProto().encodeToJsonString())
 //        }
     }
 }
@@ -304,7 +307,9 @@ class IssueCred : Subcommand("issue-cred", "Issue a credential") {
     private val holderUri by argument(ArgType.String, "holder", "Holder DID uri")
     private val credentialAlias by argument(ArgType.String, "credential", "Credential alias")
     private val jsonFilename by option(
-        ArgType.String, "Credential claim json file", "j",
+        ArgType.String,
+        "Credential claim json file",
+        "j",
         "Credential Subject json file. Placeholder json will be used if a filename isn't provided"
     ).default("")
     override fun execute() {
@@ -452,6 +457,7 @@ class AddKey : Subcommand("add-key", "Add a key to a DID") {
     private val didAlias by argument(ArgType.String, "alias", "DID alias")
     private val keyId by argument(ArgType.String, "keyId", "Key identifier")
     private val keyPurpose by argument(ArgType.Choice(listOf("master", "issuing", "revocation"), { it }), "keyType", "Key type")
+
     @OptIn(PrismSdkInternal::class)
     override fun execute() {
         val db = openDb()
@@ -465,7 +471,7 @@ class AddKey : Subcommand("add-key", "Add a key to a DID") {
             }
         }
         if (didAliasExists(db, walletName, didAlias) &&
-            ! keyIdExists(db, walletName, didAlias, keyId)
+            !keyIdExists(db, walletName, didAlias, keyId)
         ) {
             wallet = addKey(wallet, didAlias, keyId, keyTypeValue)
             updateWallet(db, wallet)
@@ -531,8 +537,10 @@ class PeerDIDCreatorCommand : Subcommand("create-peer-did", "Creates a new Peer 
     override fun execute() {
         val res = try {
             createPeerDID(
-                authKeysCount = authKeysCount, agreementKeysCount = agreementKeysCount,
-                serviceEndpoint = serviceEndpoint, serviceRoutingKeys = serviceRoutingKeys,
+                authKeysCount = authKeysCount,
+                agreementKeysCount = agreementKeysCount,
+                serviceEndpoint = serviceEndpoint,
+                serviceRoutingKeys = serviceRoutingKeys,
                 SecretResolver()
             )
         } catch (e: IllegalArgumentException) {
@@ -594,13 +602,17 @@ class PackCommand : Subcommand("pack", "Packs the message") {
     private val protectSender by option(
         ArgType.Boolean,
         fullName = "protect-sender",
-        description = "Whether the sender's ID (DID) must be hidden. True by default."
-    ).default(true)
+        description = "Whether the sender's ID (DID) must be hidden. False by default."
+    ).default(false)
 
     override fun execute() {
         val res = try {
             pack(
-                data = message, to = to, from = from, signFrom = signFrom, protectSender = protectSender,
+                data = message,
+                to = to,
+                from = from,
+                signFrom = signFrom,
+                protectSender = protectSender,
                 SecretResolver()
             ).packedMessage
         } catch (e: DIDCommException) {
